@@ -1,0 +1,86 @@
+const { test, expect } = require('@playwright/test');
+const { env } = require('../../../config/env');
+const { createApiClient } = require('../../../helpers/apiClient');
+const { expectJsonContentType, expectHttpStatus } = require('../../../helpers/assertions');
+const {
+  expectAuthSendOtpValidationErrorBody,
+  expectAuthSendOtpBadRequestBody
+} = require('../../../helpers/assertions.auth');
+const { publishApiResponse } = require('../../../helpers/apiResponseReport');
+
+test.describe('Send OTP @negative', () => {
+  async function loginAttemptId() {
+    if (!env.LOGIN_EMAIL || !env.LOGIN_PASSWORD) return null;
+    const client = await createApiClient();
+    try {
+      const res = await client.post('auth/login', {
+        data: { email: env.LOGIN_EMAIL, password: env.LOGIN_PASSWORD }
+      });
+      const body = await res.json();
+      return res.ok() ? body.data.loginAttemptId : null;
+    } finally {
+      await client.dispose();
+    }
+  }
+
+  async function postSendOtp(payload, testInfo) {
+    const client = await createApiClient();
+    try {
+      const response = await client.post('auth/send-otp', { data: payload });
+      const body = await response.json();
+      await publishApiResponse(testInfo, {
+        urlHint: 'send-otp',
+        status: response.status(),
+        statusText: response.statusText(),
+        body,
+        requestPayload: payload
+      });
+      return { response, body };
+    } finally {
+      await client.dispose();
+    }
+  }
+
+  test('Missing loginAttemptId → 422', async ({}, testInfo) => {
+    const { response, body } = await postSendOtp({ method: 'EMAIL' }, testInfo);
+    expectHttpStatus(response, 422);
+    expectJsonContentType(response);
+    expectAuthSendOtpValidationErrorBody(body, 'loginAttemptId');
+  });
+
+  test('Empty loginAttemptId → 422', async ({}, testInfo) => {
+    const { response, body } = await postSendOtp(
+      { loginAttemptId: '', method: 'EMAIL' },
+      testInfo
+    );
+    expectHttpStatus(response, 422);
+    expectJsonContentType(response);
+    expectAuthSendOtpValidationErrorBody(body);
+  });
+
+  test('SMS not supported → 400', async ({}, testInfo) => {
+    test.skip(!env.LOGIN_EMAIL || !env.LOGIN_PASSWORD, 'Set LOGIN_EMAIL and LOGIN_PASSWORD in .env');
+    const id = await loginAttemptId();
+    expect(id).toBeTruthy();
+    const { response, body } = await postSendOtp({ loginAttemptId: id, method: 'SMS' }, testInfo);
+    expectHttpStatus(response, 400);
+    expectJsonContentType(response);
+    expectAuthSendOtpBadRequestBody(body, {
+      message: 'Only EMAIL is supported for now.',
+      errorKey: 'AUTH_FORBIDDEN'
+    });
+  });
+
+  test('Invalid loginAttemptId → 400', async ({}, testInfo) => {
+    const { response, body } = await postSendOtp(
+      { loginAttemptId: '00000000-0000-0000-0000-000000000000', method: 'EMAIL' },
+      testInfo
+    );
+    expectHttpStatus(response, 400);
+    expectJsonContentType(response);
+    expectAuthSendOtpBadRequestBody(body, {
+      message: 'Invalid loginAttemptId.',
+      errorKey: 'AUTH_FORBIDDEN'
+    });
+  });
+});

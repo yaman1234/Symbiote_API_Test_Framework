@@ -1,0 +1,40 @@
+name: API Placeholder Tests
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  smoke-placeholders:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright
+        run: npx playwright install --with-deps
+
+      - name: Run smoke suite (login test skips if secrets unset)
+        run: npm run test:smoke
+        env:
+          BASE_URL: https://api-qa.symbiotes.co.uk/api/v1/
+          LOGIN_EMAIL: ${{ secrets.SYMBIOTE_LOGIN_EMAIL }}
+          LOGIN_PASSWORD: ${{ secrets.SYMBIOTE_LOGIN_PASSWORD }}
+
+      - name: Upload Playwright reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-reports
+          path: |
+            reports/

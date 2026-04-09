@@ -1,0 +1,27 @@
+{
+  "name": "symbiote-api-testing-framework",
+  "version": "1.0.0",
+  "description": "Symbiote API testing foundation using Playwright + JavaScript",
+  "private": true,
+  "scripts": {
+    "test": "playwright test tests/api",
+    "pw:install": "playwright install",
+    "test:smoke": "playwright test --grep @smoke",
+    "test:smoke:list": "playwright test --grep @smoke --list",
+    "test:list": "playwright test --list",
+    "test:regression": "playwright test --grep @regression",
+    "test:manager-report": "playwright test --grep @regression",
+    "test:negative": "playwright test --grep @negative",
+    "test:negative:list": "playwright test --grep @negative --list",
+    "test:smoke-and-negative": "playwright test --grep \"@smoke|@negative\"",
+    "test:api": "playwright test tests/api",
+    "report:open": "playwright show-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.59.1"
+  },
+  "dependencies": {
+    "ajv": "^8.18.0",
+    "dotenv": "^17.4.1"
+  }
+}
