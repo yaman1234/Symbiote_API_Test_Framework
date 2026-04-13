@@ -1,8 +1,7 @@
 const { test } = require('@playwright/test');
 const { env } = require('../../../config/env');
 const { createApiClient } = require('../../../helpers/apiClient');
-const { expectSuccessStatus, expectJsonContentType } = require('../../../helpers/assertions');
-const { expectAuthLoginOtpSuccessBody } = require('../../../helpers/assertions.auth');
+const { expectSuccessStatus, expectJsonContentType, expectJsonSuccessBody, expectHttpStatus, expectFieldExists, expectFieldValue } = require('../../../helpers/assertions');
 const { publishApiResponse } = require('../../../helpers/apiResponseReport');
 
 test.describe('Login @smoke', () => {
@@ -23,7 +22,16 @@ test.describe('Login @smoke', () => {
       });
       expectSuccessStatus(response, body);
       expectJsonContentType(response);
-      expectAuthLoginOtpSuccessBody(body);
+      expectJsonSuccessBody(body, {
+        message: 'OTP required.',
+        nonEmptyPaths: [
+          'data.loginAttemptId',
+          'data.methods',
+          'data.methods.0.type',
+          'data.expiresInSeconds'
+        ]
+      });
+
     } finally {
       await client.dispose();
     }

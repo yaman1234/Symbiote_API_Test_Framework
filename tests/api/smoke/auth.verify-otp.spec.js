@@ -2,11 +2,8 @@ const { test } = require('@playwright/test');
 const { env } = require('../../../config/env');
 const { createApiClient } = require('../../../helpers/apiClient');
 const { expectSuccessStatus, expectJsonContentType } = require('../../../helpers/assertions');
-const {
-  expectAuthLoginOtpSuccessBody,
-  expectAuthSendOtpSuccessBody,
-  expectAuthVerifyOtpSuccessBody
-} = require('../../../helpers/assertions.auth');
+const { expectAuthSendOtpSuccessBody, expectAuthVerifyOtpSuccessBody } = require('../../../helpers/assertions.auth');
+const { postLoginExpectOtpChallenge } = require('../../../helpers/authLoginOtpStep');
 const { publishApiResponse } = require('../../../helpers/apiResponseReport');
 const { otpChainTestsSkippedReason } = require('../../../helpers/otpChainSkip');
 
@@ -22,18 +19,7 @@ test.describe('Verify OTP @smoke', () => {
     const client = await createApiClient();
     try {
       const loginRequest = { email: env.LOGIN_EMAIL, password: env.LOGIN_PASSWORD };
-      const loginRes = await client.post('auth/login', { data: loginRequest });
-      const loginBody = await loginRes.json();
-      await publishApiResponse(testInfo, {
-        urlHint: 'login',
-        status: loginRes.status(),
-        statusText: loginRes.statusText(),
-        body: loginBody,
-        requestPayload: loginRequest
-      });
-      expectSuccessStatus(loginRes, loginBody);
-      expectJsonContentType(loginRes);
-      expectAuthLoginOtpSuccessBody(loginBody);
+      const { loginBody } = await postLoginExpectOtpChallenge(client, testInfo, loginRequest);
 
       const sendPayload = {
         loginAttemptId: loginBody.data.loginAttemptId,
@@ -68,6 +54,8 @@ test.describe('Verify OTP @smoke', () => {
       expectSuccessStatus(verifyRes, verifyBody);
       expectJsonContentType(verifyRes);
       expectAuthVerifyOtpSuccessBody(verifyBody);
+
+      
     } finally {
       await client.dispose();
     }

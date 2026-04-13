@@ -32,7 +32,19 @@ const env = {
   PROTECTED_API_PATH: process.env.PROTECTED_API_PATH || '',
   // QA matrix [15]: Tier 3 branch member (e.g. t3.emp1@demo.com); password falls back to LOGIN_PASSWORD
   TIER3_MEMBER_EMAIL: process.env.TIER3_MEMBER_EMAIL || '',
-  TIER3_MEMBER_PASSWORD: process.env.TIER3_MEMBER_PASSWORD || ''
+  TIER3_MEMBER_PASSWORD: process.env.TIER3_MEMBER_PASSWORD || '',
+  // GET /orgs/:orgId/users — pick rows from tests/data/qa-seeded-accounts.md; passwords default to LOGIN_PASSWORD
+  USER_MGMT_OWNER_EMAIL: process.env.USER_MGMT_OWNER_EMAIL || '',
+  USER_MGMT_OWNER_PASSWORD: process.env.USER_MGMT_OWNER_PASSWORD || '',
+  USER_MGMT_EMPLOYEE_EMAIL: process.env.USER_MGMT_EMPLOYEE_EMAIL || '',
+  USER_MGMT_EMPLOYEE_PASSWORD: process.env.USER_MGMT_EMPLOYEE_PASSWORD || '',
+  USER_MGMT_SUPERVISOR_EMAIL: process.env.USER_MGMT_SUPERVISOR_EMAIL || '',
+  USER_MGMT_SUPERVISOR_PASSWORD: process.env.USER_MGMT_SUPERVISOR_PASSWORD || '',
+  // POST /orgs/:orgId/users — branch UUID for create-user smoke; optional comma-separated department UUIDs
+  USER_CREATE_BRANCH_ID: process.env.USER_CREATE_BRANCH_ID || '',
+  USER_CREATE_DEPARTMENT_IDS: process.env.USER_CREATE_DEPARTMENT_IDS || '',
+  // Branch UUID not equal to supervisor's branch (e.g. Tier 3 branch-2) — regression: supervisor cannot create there
+  USER_CREATE_WRONG_BRANCH_ID: process.env.USER_CREATE_WRONG_BRANCH_ID || ''
 };
 
 module.exports = { env };

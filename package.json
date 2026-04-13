@@ -13,6 +13,7 @@
     "test:manager-report": "playwright test --grep @regression",
     "test:negative": "playwright test --grep @negative",
     "test:negative:list": "playwright test --grep @negative --list",
+    "test:users": "playwright test --grep @users",
     "test:smoke-and-negative": "playwright test --grep \"@smoke|@negative\"",
     "test:api": "playwright test tests/api",
     "report:open": "playwright show-report"

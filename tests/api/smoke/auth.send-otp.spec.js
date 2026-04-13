@@ -1,11 +1,8 @@
 const { test } = require('@playwright/test');
 const { env } = require('../../../config/env');
 const { createApiClient } = require('../../../helpers/apiClient');
-const { expectSuccessStatus, expectJsonContentType } = require('../../../helpers/assertions');
-const {
-  expectAuthLoginOtpSuccessBody,
-  expectAuthSendOtpSuccessBody
-} = require('../../../helpers/assertions.auth');
+const { expectSuccessStatus, expectJsonContentType, expectJsonSuccessBody } = require('../../../helpers/assertions');
+const { postLoginExpectOtpChallenge } = require('../../../helpers/authLoginOtpStep');
 const { publishApiResponse } = require('../../../helpers/apiResponseReport');
 const { otpChainTestsSkippedReason } = require('../../../helpers/otpChainSkip');
 
@@ -18,18 +15,7 @@ test.describe('Send OTP @smoke', () => {
     const client = await createApiClient();
     try {
       const loginRequest = { email: env.LOGIN_EMAIL, password: env.LOGIN_PASSWORD };
-      const loginRes = await client.post('auth/login', { data: loginRequest });
-      const loginBody = await loginRes.json();
-      await publishApiResponse(testInfo, {
-        urlHint: 'login',
-        status: loginRes.status(),
-        statusText: loginRes.statusText(),
-        body: loginBody,
-        requestPayload: loginRequest
-      });
-      expectSuccessStatus(loginRes, loginBody);
-      expectJsonContentType(loginRes);
-      expectAuthLoginOtpSuccessBody(loginBody);
+      const { loginBody } = await postLoginExpectOtpChallenge(client, testInfo, loginRequest);
 
       const otpRequest = {
         loginAttemptId: loginBody.data.loginAttemptId,
@@ -46,7 +32,14 @@ test.describe('Send OTP @smoke', () => {
       });
       expectSuccessStatus(otpRes, otpBody);
       expectJsonContentType(otpRes);
-      expectAuthSendOtpSuccessBody(otpBody);
+      expectJsonSuccessBody(otpBody, {
+        message: 'OTP generated.',
+        nonEmptyPaths: [
+          'data.delivery.type',
+          'data.delivery.masked',
+          'data.expiresInSeconds'
+        ]
+      });
     } finally {
       await client.dispose();
     }

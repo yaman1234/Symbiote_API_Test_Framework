@@ -1,8 +1,18 @@
+/**
+ * Generic API test assertions for Playwright APIResponse + parsed JSON bodies.
+ * Includes dotted-path field checks ({@link expectFieldExists}, {@link expectFieldValue}) and Symbiote-style envelopes.
+ */
 const { expect } = require('@playwright/test');
 
 /**
- * @param {object} obj
- * @param {string} path - dot/bracket-less; use numeric segment for array index e.g. data.methods.0.type
+ * Reads a nested value from an object using a dotted path (no brackets).
+ * Does not assert — returns `undefined` if any segment is missing.
+ *
+ * Examples: `data.org.id`, `data.items.0.type` (numeric segment = array index).
+ *
+ * @param {object} obj - Root object (e.g. parsed JSON body)
+ * @param {string} path - Dot-separated keys; use `0`, `1`, … for array indices
+ * @returns {unknown} Value at path or `undefined`
  */
 function getAt(obj, path) {
   return path.split('.').reduce((o, k) => {
@@ -13,6 +23,17 @@ function getAt(obj, path) {
   }, obj);
 }
 
+/**
+ * Asserts the value at `path` in `body` exists and is “non-empty” by type:
+ * - array / string: length > 0
+ * - number: > 0 (note: 0 is treated as empty)
+ * - boolean: always ok if present
+ * - object: at least one own key
+ * Internal helper for {@link expectJsonSuccessBody}.
+ *
+ * @param {object} body
+ * @param {string} path - Same rules as {@link getAt}
+ */
 function assertPathNonEmpty(body, path) {
   const v = getAt(body, path);
   expect(v === undefined || v === null, `${path} missing`).toBe(false);
@@ -30,9 +51,43 @@ function assertPathNonEmpty(body, path) {
 }
 
 /**
- * Response status is 2xx (Playwright `ok()`).
+ * Asserts a field is present at `path` (not `undefined` and not `null`).
+ * Use {@link expectFieldValue} when you also need an exact value match.
+ *
+ * @param {object} body - Root object (e.g. parsed JSON)
+ * @param {string} path - Dot path; same rules as {@link getAt}
+ */
+function expectFieldExists(body, path) {
+  const actual = getAt(body, path);
+  expect(
+    actual === undefined || actual === null,
+    `Expected field to exist at "${path}", got ${actual === undefined ? 'undefined' : 'null'}`
+  ).toBe(false);
+}
+
+/**
+ * Asserts a field exists at `path` and its value **deep-equals** `expected` (Playwright `toEqual`).
+ * Fails if the path is missing (`undefined` / `null`).
+ *
+ * @param {object} body - Root object (e.g. parsed JSON)
+ * @param {string} path - Dot path; same rules as {@link getAt}
+ * @param {unknown} expected - Primitives, arrays, or plain objects (deep compare)
+ */
+function expectFieldValue(body, path, expected) {
+  const actual = getAt(body, path);
+  expect(
+    actual === undefined || actual === null,
+    `Expected field at "${path}" to exist before comparing value`
+  ).toBe(false);
+  expect(actual, path).toEqual(expected);
+}
+
+/**
+ * Asserts the HTTP response status is successful (2xx) using Playwright’s `APIResponse.ok()`.
+ * On failure, builds a message that includes optional `detail` (string or parsed body) for easier debugging.
+ *
  * @param {import('@playwright/test').APIResponse} response
- * @param {object | string} [detail]
+ * @param {object | string} [detail] - Extra text, or body object (uses `message` or `error.code` when present)
  */
 function expectSuccessStatus(response, detail) {
   if (response.ok()) return;
@@ -47,14 +102,23 @@ function expectSuccessStatus(response, detail) {
   expect(response.ok(), `Expected 2xx, got HTTP ${response.status()}${suffix}`).toBeTruthy();
 }
 
+/**
+ * Asserts the response `Content-Type` header includes `application/json`.
+ * Use after API calls that are expected to return JSON.
+ *
+ * @param {import('@playwright/test').APIResponse} response
+ */
 function expectJsonContentType(response) {
   const contentType = response.headers()['content-type'] || '';
   expect(contentType).toContain('application/json');
 }
 
 /**
+ * Asserts the HTTP status code equals `expectedStatus`.
+ * Also checks consistency with Playwright: for 2xx expects `response.ok()` true; for other codes expects `ok()` false.
+ *
  * @param {import('@playwright/test').APIResponse} response
- * @param {number} expectedStatus
+ * @param {number} expectedStatus - e.g. 200, 201, 400, 401, 422
  */
 function expectHttpStatus(response, expectedStatus) {
   expect(response.status()).toBe(expectedStatus);
@@ -66,9 +130,14 @@ function expectHttpStatus(response, expectedStatus) {
 }
 
 /**
- * Symbiote-style success JSON: success, statusCode, message + required non-empty paths under body.
- * @param {object} body
- * @param {{ statusCode?: number, message?: string, nonEmptyPaths?: string[] }} opts
+ * Asserts a Symbiote-style **success** JSON body: top-level envelope + optional field checks.
+ * - `body.success` is `true`
+ * - `body.statusCode` is a number and equals `opts.statusCode` (default **200**)
+ * - `body.message` is a string; if `opts.message` is set, must match exactly
+ * - For each path in `opts.nonEmptyPaths`, runs {@link assertPathNonEmpty} on `body`
+ *
+ * @param {object} body - Parsed JSON response body
+ * @param {{ statusCode?: number, message?: string, nonEmptyPaths?: string[] }} [opts]
  */
 function expectJsonSuccessBody(body, opts = {}) {
   const statusCode = opts.statusCode ?? 200;
@@ -87,17 +156,27 @@ function expectJsonSuccessBody(body, opts = {}) {
 }
 
 /**
- * Symbiote-style error JSON: success false, statusCode, message, error.code; optional details / error.key.
- * @param {object} body
+ * Asserts a Symbiote-style **error** JSON body: top-level envelope + `error` object.
+ * - `body.success` is `false`
+ * - `body.statusCode` equals `opts.statusCode`
+ * - `body.message` is a string; optional exact match (`message`) or substring (`messageIncludes`)
+ * - `body.error` exists; `body.error.code` is a string
+ * - Optional: exact `error.code` (`errorCode`) or any non-empty code (`requireErrorCode`)
+ * - Optional: exact `error.key` (`errorKey`) or any non-empty key (`requireErrorKey`)
+ * - Optional: `error.details` is a non-empty array (`requireDetails`)
+ * - Optional: some detail row has `field === detailsField` (`detailsField`)
+ *
+ * @param {object} body - Parsed JSON response body
  * @param {{
  *   statusCode: number,
- *   errorCode: string,
+ *   errorCode?: string,
  *   message?: string,
  *   messageIncludes?: string,
  *   requireDetails?: boolean,
  *   detailsField?: string,
  *   errorKey?: string,
- *   requireErrorKey?: boolean
+ *   requireErrorKey?: boolean,
+ *   requireErrorCode?: boolean
  * }} opts
  */
 function expectJsonErrorBody(body, opts) {
@@ -137,10 +216,12 @@ function expectJsonErrorBody(body, opts) {
 }
 
 module.exports = {
+  getAt,
+  expectFieldExists,
+  expectFieldValue,
   expectSuccessStatus,
   expectJsonContentType,
   expectHttpStatus,
   expectJsonSuccessBody,
-  expectJsonErrorBody,
-  getAt
+  expectJsonErrorBody
 };
