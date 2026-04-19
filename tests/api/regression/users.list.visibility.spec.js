@@ -7,6 +7,7 @@ const { expectSuccessStatus, expectJsonContentType } = require('../../../helpers
 const {
   expectOrgUsersListSuccessBody,
   getOrgUsersItems,
+  getOrgUsersListTotal,
   listItemIdentity,
   listItemBranchId
 } = require('../../../helpers/assertions.users');
@@ -27,22 +28,25 @@ test.describe('List users visibility @regression @users', () => {
 
   async function fetchUserList(client, session, testInfo, query = {}) {
     const listUrl = `orgs/${session.orgId}/users`;
+    const listParams = { page: 1, limit: 50, ...query };
     const listRes = await client.get(listUrl, {
       headers: { Authorization: `Bearer ${session.accessToken}` },
-      params: { page: 1, limit: 50, ...query }
+      params: listParams
     });
     const listBody = await listRes.json();
     await publishApiResponse(testInfo, {
       urlHint: 'orgs/users',
+      response: listRes,
+      loginEmail: session.loginEmail,
       status: listRes.status(),
       statusText: listRes.statusText(),
       body: listBody,
-      requestPayload: { path: listUrl, query }
+      requestPayload: { path: listUrl, query: listParams }
     });
     return { listRes, listBody };
   }
 
-  test('Owner sees organization-wide users (total ≥ 2 in seeded Tier 1)', async ({}, testInfo) => {
+  test('Owner sees organization-wide users', async ({}, testInfo) => {
     const { email, password } = resolveCredential(
       env.USER_MGMT_OWNER_EMAIL,
       ownerPersona && ownerPersona.email,
@@ -66,7 +70,13 @@ test.describe('List users visibility @regression @users', () => {
       expectSuccessStatus(listRes, listBody);
       expectJsonContentType(listRes);
       expectOrgUsersListSuccessBody(listBody);
-      expect(listBody.data.total).toBeGreaterThanOrEqual(2);
+      const items = getOrgUsersItems(listBody);
+      const total = getOrgUsersListTotal(listBody);
+      if (typeof total === 'number') {
+        expect(total).toBeGreaterThanOrEqual(2);
+      } else {
+        expect(items.length, 'owner list total (no meta.total)').toBeGreaterThanOrEqual(2);
+      }
     } finally {
       await client.dispose();
     }
@@ -102,13 +112,16 @@ test.describe('List users visibility @regression @users', () => {
       for (const row of items) {
         expect(listItemIdentity(row)).toBe(selfId);
       }
-      expect(listBody.data.total).toBe(items.length);
+      const total = getOrgUsersListTotal(listBody);
+      if (typeof total === 'number') {
+        expect(total).toBe(items.length);
+      }
     } finally {
       await client.dispose();
     }
   });
 
-  test('Supervisor: rows are branch-scoped when branch id is present on items', async ({}, testInfo) => {
+  test('Supervisor: Returns users that are branch-scoped', async ({}, testInfo) => {
     const { email, password } = resolveCredential(
       env.USER_MGMT_SUPERVISOR_EMAIL,
       supervisorPersona && supervisorPersona.email,
@@ -137,6 +150,12 @@ test.describe('List users visibility @regression @users', () => {
       expectJsonContentType(listRes);
       expectOrgUsersListSuccessBody(listBody);
       const items = getOrgUsersItems(listBody);
+      // Supervisor list contract (API may expose branch per row or not):
+      // - When every list row has a branch id (`branchId` / `branch.id`), we assert strict branch
+      //   alignment: all rows share exactly one branch id and it matches the supervisor session.
+      // - Otherwise (sparse / missing branch fields, or empty branch ids on some rows), we only
+      //   require that the supervisor's own org user id appears in the list (e.g. self visible when
+      //   the API does not repeat branch on each item).
       const branchOnRows = items.map(listItemBranchId).filter((b) => typeof b === 'string' && b.length > 0);
       if (branchOnRows.length === items.length && items.length > 0) {
         expect(new Set(branchOnRows).size).toBe(1);

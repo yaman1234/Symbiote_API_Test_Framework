@@ -11,13 +11,15 @@ const { publishApiResponse } = require('../../../helpers/apiResponseReport');
 const { otpChainTestsSkippedReason } = require('../../../helpers/otpChainSkip');
 
 test.describe('Refresh token @negative', () => {
-  async function postRefresh(testInfo, { data = {}, extraHeaders = {} } = {}) {
+  async function postRefresh(testInfo, { data = {}, extraHeaders = {}, loginEmail } = {}) {
     const client = await createApiClient(extraHeaders);
     try {
       const response = await client.post('auth/refresh', { data });
       const body = await response.json();
       await publishApiResponse(testInfo, {
         urlHint: 'refresh',
+        response,
+        ...(loginEmail !== undefined && { loginEmail }),
         status: response.status(),
         statusText: response.statusText(),
         body,
@@ -30,7 +32,7 @@ test.describe('Refresh token @negative', () => {
   }
 
   test('No refreshToken in body (and no cookie) → 401', async ({}, testInfo) => {
-    const { response, body } = await postRefresh(testInfo, { data: {} });
+    const { response, body } = await postRefresh(testInfo, { data: {}, loginEmail: null });
     expectHttpStatus(response, 401);
     expectJsonContentType(response);
     expectAuthRefreshInvalidBody(body);
@@ -38,7 +40,8 @@ test.describe('Refresh token @negative', () => {
 
   test('Malformed refresh token (not tokenId.secret) → 401', async ({}, testInfo) => {
     const { response, body } = await postRefresh(testInfo, {
-      data: { refreshToken: 'not-a-valid-format' }
+      data: { refreshToken: 'not-a-valid-format' },
+      loginEmail: null
     });
     expectHttpStatus(response, 401);
     expectJsonContentType(response);
@@ -47,7 +50,8 @@ test.describe('Refresh token @negative', () => {
 
   test('Well-formed but unknown session → 401', async ({}, testInfo) => {
     const { response, body } = await postRefresh(testInfo, {
-      data: { refreshToken: '00000000-0000-0000-0000-000000000000.fake-secret-part' }
+      data: { refreshToken: '00000000-0000-0000-0000-000000000000.fake-secret-part' },
+      loginEmail: null
     });
     expectHttpStatus(response, 401);
     expectJsonContentType(response);
@@ -92,7 +96,8 @@ test.describe('Refresh token @negative', () => {
     }
 
     const { response, body } = await postRefresh(testInfo, {
-      data: { refreshToken: firstRefreshToken }
+      data: { refreshToken: firstRefreshToken },
+      loginEmail: env.LOGIN_EMAIL
     });
     expectHttpStatus(response, 401);
     expectJsonContentType(response);

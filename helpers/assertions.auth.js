@@ -138,6 +138,44 @@ function expectAuthRefreshInvalidBody(body) {
   });
 }
 
+const FORGOT_PASSWORD_GENERIC_MESSAGE =
+  'If an account exists for this email, a reset link has been sent.';
+
+function expectForgotPasswordGenericSuccessBody(body) {
+  expectJsonSuccessBody(body, {
+    message: FORGOT_PASSWORD_GENERIC_MESSAGE,
+    nonEmptyPaths: []
+  });
+}
+
+function expectPasswordActionValidateSuccessBody(body, expectedPurpose) {
+  expectJsonSuccessBody(body, {
+    message: 'Token is valid.',
+    nonEmptyPaths: ['data.valid', 'data.purpose', 'data.email', 'data.expiresAt']
+  });
+  expect(body.data.valid).toBe(true);
+  expect(body.data.purpose).toBe(expectedPurpose);
+  expect(typeof body.data.email).toBe('string');
+  expect(body.data.email.length).toBeGreaterThan(0);
+}
+
+function expectSetPasswordSuccessBody(body, expectedPurpose) {
+  expectJsonSuccessBody(body, {
+    message: 'Password set successfully.',
+    nonEmptyPaths: ['data.purpose']
+  });
+  expect(body.data.purpose).toBe(expectedPurpose);
+}
+
+/** 400 responses from password-action / set-password flows (BAD_REQUEST envelope). */
+function expectAuthPasswordActionBadRequestBody(body, message) {
+  expectJsonErrorBody(body, {
+    statusCode: 400,
+    errorCode: 'BAD_REQUEST',
+    message
+  });
+}
+
 module.exports = {
   expectAuthLoginOtpSuccessBody,
   expectAuthInvalidCredentialsBody,
@@ -151,6 +189,11 @@ module.exports = {
   expectAuthVerifyOtpBadRequestBody,
   expectAuthRefreshSuccessBody,
   expectAuthRefreshInvalidBody,
+  expectForgotPasswordGenericSuccessBody,
+  expectPasswordActionValidateSuccessBody,
+  expectSetPasswordSuccessBody,
+  expectAuthPasswordActionBadRequestBody,
+  FORGOT_PASSWORD_GENERIC_MESSAGE,
   AUTH_LOGIN_META_PATH,
   AUTH_SEND_OTP_META_PATH,
   AUTH_VERIFY_OTP_META_PATH,

@@ -74,10 +74,73 @@ function buildCreateUserPayload({
   };
 }
 
+/**
+ * PATCH /orgs/:orgId/users/:orgUserId — mirrors the API’s full user shape (aligned with {@link buildCreateUserPayload}).
+ * @param {{
+ *   branchId: string,
+ *   fullName: string,
+ *   phoneNumber?: string,
+ *   departmentIds?: string[],
+ *   headDepartmentIds?: string[],
+ *   employeeId?: string,
+ *   overrides?: object
+ * }} p
+ */
+function buildUpdateUserPayload({
+  branchId,
+  fullName,
+  phoneNumber,
+  departmentIds = [],
+  headDepartmentIds = [],
+  employeeId,
+  overrides = {}
+}) {
+  const unique = makeUniqueSuffix();
+  return {
+    branchId,
+    fullName,
+    phoneNumber: phoneNumber || `07${randomDigits(9)}`,
+    dateOfBirth: '1995-06-12',
+    gender: 'MALE',
+    addressLine1: '221 Baker Street',
+    addressLine2: 'Flat 2',
+    town: 'Marylebone',
+    city: 'London',
+    country: 'UK',
+    position: 'Warehouse Operator',
+    employeeId: employeeId || `EMP-UPD-${unique}`,
+    // GET detail returns branch row `status` ACTIVE after update in QA; PENDING is not persisted for this flow.
+    status: 'ACTIVE',
+    branchRole: 'EMPLOYEE',
+    departmentIds,
+    headDepartmentIds,
+    nationalInsuranceNumber: 'QQ123456C',
+    shareCode: 'SCODE123',
+    taxId: 'TAX-998899',
+    // Default INVENTORY only; add PAYROLL via overrides if Owner + QA allows it on the user.
+    modules: ['INVENTORY'],
+    paymentMethod: 'BANK_TRANSFER',
+    paymentFrequency: 'MONTHLY',
+    paymentDay: 'END_OF_MONTH',
+    accountName: 'John Employee',
+    bankName: 'HSBC',
+    bankBranch: 'London Central',
+    currency: 'GBP',
+    baseWage: '2500.00',
+    overtimeRate: '1.50',
+    wagePeriod: 'MONTHLY',
+    attachmentKey: 'uploads/contracts/john.pdf',
+    attachmentName: 'employment-contract.pdf',
+    attachmentMime: 'application/pdf',
+    attachmentSize: 483920,
+    ...overrides
+  };
+}
+
 /** @param {string} [raw] comma-separated UUIDs */
 function parseUuidList(raw) {
   if (!raw || typeof raw !== 'string') return [];
   return raw.split(',').map((s) => s.trim()).filter(Boolean);
 }
 
-module.exports = { buildCreateUserPayload, parseUuidList };
+module.exports = { buildCreateUserPayload, buildUpdateUserPayload, parseUuidList };

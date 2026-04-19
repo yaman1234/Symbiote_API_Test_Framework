@@ -27,6 +27,8 @@ test.describe('Refresh token @smoke', () => {
       const loginBody = await loginRes.json();
       await publishApiResponse(testInfo, {
         urlHint: 'login',
+        response: loginRes,
+        loginEmail: loginRequest.email,
         status: loginRes.status(),
         statusText: loginRes.statusText(),
         body: loginBody,
@@ -44,6 +46,8 @@ test.describe('Refresh token @smoke', () => {
       const sendBody = await sendRes.json();
       await publishApiResponse(testInfo, {
         urlHint: 'send-otp',
+        response: sendRes,
+        loginEmail: loginRequest.email,
         status: sendRes.status(),
         statusText: sendRes.statusText(),
         body: sendBody,
@@ -61,6 +65,8 @@ test.describe('Refresh token @smoke', () => {
       const verifyBody = await verifyRes.json();
       await publishApiResponse(testInfo, {
         urlHint: 'verify-otp',
+        response: verifyRes,
+        loginEmail: loginRequest.email,
         status: verifyRes.status(),
         statusText: verifyRes.statusText(),
         body: verifyBody,
@@ -75,6 +81,8 @@ test.describe('Refresh token @smoke', () => {
       const refreshBody = await refreshRes.json();
       await publishApiResponse(testInfo, {
         urlHint: 'refresh',
+        response: refreshRes,
+        loginEmail: loginRequest.email,
         status: refreshRes.status(),
         statusText: refreshRes.statusText(),
         body: refreshBody,

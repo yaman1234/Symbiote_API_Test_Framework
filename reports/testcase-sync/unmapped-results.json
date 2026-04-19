@@ -1,0 +1,53 @@
+{
+  "runId": "66e92b41-9fc1-4aca-bd18-3336cd620512",
+  "timestamp": "2026-04-15T13:41:10.057Z",
+  "totalResults": 59,
+  "unmappedCount": 5,
+  "unmapped": [
+    {
+      "runId": "66e92b41-9fc1-4aca-bd18-3336cd620512",
+      "timestamp": "2026-04-15T13:41:10.057Z",
+      "specFile": "api/negative/auth.login.negative.spec.js",
+      "testTitle": "OTP challenge with uppercase email (lowercased before lookup)",
+      "status": "passed",
+      "reason": "Ambiguous_match",
+      "confidence": 0.5
+    },
+    {
+      "runId": "66e92b41-9fc1-4aca-bd18-3336cd620512",
+      "timestamp": "2026-04-15T13:41:10.057Z",
+      "specFile": "api/negative/auth.verify-otp.negative.spec.js",
+      "testTitle": "OTP not generated → 400",
+      "status": "passed",
+      "reason": "Ambiguous_match",
+      "confidence": 0.4
+    },
+    {
+      "runId": "66e92b41-9fc1-4aca-bd18-3336cd620512",
+      "timestamp": "2026-04-15T13:41:10.057Z",
+      "specFile": "api/negative/users.create.negative.spec.js",
+      "testTitle": "POST without Authorization → 401",
+      "status": "passed",
+      "reason": "Low_similarity",
+      "confidence": 0.25
+    },
+    {
+      "runId": "66e92b41-9fc1-4aca-bd18-3336cd620512",
+      "timestamp": "2026-04-15T13:41:10.057Z",
+      "specFile": "api/regression/users.create.rules.spec.js",
+      "testTitle": "Supervisor cannot set modules",
+      "status": "skipped",
+      "reason": "Ambiguous_match",
+      "confidence": 0.75
+    },
+    {
+      "runId": "66e92b41-9fc1-4aca-bd18-3336cd620512",
+      "timestamp": "2026-04-15T13:41:10.057Z",
+      "specFile": "api/regression/users.list.visibility.spec.js",
+      "testTitle": "Supervisor: rows are branch-scoped when branch id is present on items",
+      "status": "skipped",
+      "reason": "Low_similarity",
+      "confidence": 0.2857142857142857
+    }
+  ]
+}

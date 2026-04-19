@@ -25,6 +25,8 @@ test.describe('Send OTP @smoke', () => {
       const otpBody = await otpRes.json();
       await publishApiResponse(testInfo, {
         urlHint: 'send-otp',
+        response: otpRes,
+        loginEmail: loginRequest.email,
         status: otpRes.status(),
         statusText: otpRes.statusText(),
         body: otpBody,

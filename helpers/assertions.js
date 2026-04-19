@@ -129,6 +129,13 @@ function expectHttpStatus(response, expectedStatus) {
   }
 }
 
+/** Some Nest POST routes return `201 Created` while the JSON envelope still uses `statusCode: 200`. */
+function expectHttpOkOrCreated(response) {
+  const code = response.status();
+  expect([200, 201].includes(code), `Expected HTTP 200 or 201, got ${code}`).toBeTruthy();
+  expect(response.ok()).toBeTruthy();
+}
+
 /**
  * Asserts a Symbiote-style **success** JSON body: top-level envelope + optional field checks.
  * - `body.success` is `true`
@@ -137,7 +144,7 @@ function expectHttpStatus(response, expectedStatus) {
  * - For each path in `opts.nonEmptyPaths`, runs {@link assertPathNonEmpty} on `body`
  *
  * @param {object} body - Parsed JSON response body
- * @param {{ statusCode?: number, message?: string, nonEmptyPaths?: string[] }} [opts]
+ * @param {{ statusCode?: number, message?: string, messageIncludes?: string, nonEmptyPaths?: string[] }} [opts]
  */
 function expectJsonSuccessBody(body, opts = {}) {
   const statusCode = opts.statusCode ?? 200;
@@ -149,6 +156,9 @@ function expectJsonSuccessBody(body, opts = {}) {
   expect(typeof body.message).toBe('string');
   if (opts.message != null) {
     expect(body.message).toBe(opts.message);
+  }
+  if (opts.messageIncludes != null) {
+    expect(String(body.message)).toContain(opts.messageIncludes);
   }
   for (const path of opts.nonEmptyPaths || []) {
     assertPathNonEmpty(body, path);
@@ -222,6 +232,7 @@ module.exports = {
   expectSuccessStatus,
   expectJsonContentType,
   expectHttpStatus,
+  expectHttpOkOrCreated,
   expectJsonSuccessBody,
   expectJsonErrorBody
 };

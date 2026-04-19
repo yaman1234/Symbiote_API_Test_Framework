@@ -2,6 +2,10 @@
 
 Requires **Bearer** from **login → send-otp → verify-otp** (`loginWithOtp`).
 
+**Single user:** [`Orgs_users-get.md`](Orgs_users-get.md) — `GET /orgs/:orgId/users/:orgUserId`.
+
+**Update user:** [`Orgs_users-patch.md`](Orgs_users-patch.md) — `PATCH /orgs/:orgId/users/:orgUserId`.
+
 ---
 
 ## ORGS-USERS-001

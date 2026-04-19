@@ -72,6 +72,8 @@ test.describe('User options (branch dropdown) @smoke @users', () => {
       // Attach to Playwright report (screenshots/HTML report) for API debugging.
       await publishApiResponse(testInfo, {
         urlHint: 'orgs/users/options',
+        response: res,
+        loginEmail: session.loginEmail,
         status: res.status(),
         statusText: res.statusText(),
         body,

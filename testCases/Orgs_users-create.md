@@ -2,6 +2,8 @@
 
 Creates a user under an org + branch. Requires **Bearer** after OTP login.
 
+**Update user:** [`Orgs_users-patch.md`](Orgs_users-patch.md) — `PATCH /orgs/:orgId/users/:orgUserId` (smoke flow create → GET → PATCH → GET).
+
 ## 4.1 Create rules → coverage
 
 | Rule | Automated | Notes |
@@ -27,7 +29,7 @@ Creates a user under an org + branch. Requires **Bearer** after OTP login.
 - **Spec_File:** `tests/api/smoke/users.create.spec.js`  
 - **Scenario:** Owner creates user (minimal body, branch from env)  
 - **Expected:** HTTP **2xx**, JSON  
-- **Checks:** `expectOrgUserCreateSuccessBody` — `User created.`, `data.orgUserId`  
+- **Checks:** `expectOrgUserCreateSuccessBody` — `message` contains **User created** (e.g. `User created.` or invitation-sent variant), `data.orgUserId`  
 
 ---
 
@@ -70,7 +72,7 @@ Creates a user under an org + branch. Requires **Bearer** after OTP login.
 - **Suite:** Regression  
 - **Spec_File:** `tests/api/regression/users.create.rules.spec.js`  
 - **Scenario:** **Supervisor** creates **EMPLOYEE** in **own** `branchId`  
-- **Expected:** HTTP **2xx**, `User created.`  
+- **Expected:** HTTP **2xx**, success message contains **User created**  
 - **Checks:** `branchId === session.branchId`; `expectOrgUserCreateSuccessBody`  
 
 ---

@@ -23,13 +23,15 @@ test.describe('Send OTP @negative', () => {
     }
   }
 
-  async function postSendOtp(payload, testInfo) {
+  async function postSendOtp(payload, testInfo, loginEmail) {
     const client = await createApiClient();
     try {
       const response = await client.post('auth/send-otp', { data: payload });
       const body = await response.json();
       await publishApiResponse(testInfo, {
         urlHint: 'send-otp',
+        response,
+        ...(loginEmail !== undefined && { loginEmail }),
         status: response.status(),
         statusText: response.statusText(),
         body,
@@ -42,7 +44,7 @@ test.describe('Send OTP @negative', () => {
   }
 
   test('Missing loginAttemptId → 422', async ({}, testInfo) => {
-    const { response, body } = await postSendOtp({ method: 'EMAIL' }, testInfo);
+    const { response, body } = await postSendOtp({ method: 'EMAIL' }, testInfo, null);
     expectHttpStatus(response, 422);
     expectJsonContentType(response);
     expectAuthSendOtpValidationErrorBody(body, 'loginAttemptId');
@@ -51,7 +53,8 @@ test.describe('Send OTP @negative', () => {
   test('Empty loginAttemptId → 422', async ({}, testInfo) => {
     const { response, body } = await postSendOtp(
       { loginAttemptId: '', method: 'EMAIL' },
-      testInfo
+      testInfo,
+      null
     );
     expectHttpStatus(response, 422);
     expectJsonContentType(response);
@@ -62,7 +65,11 @@ test.describe('Send OTP @negative', () => {
     test.skip(!env.LOGIN_EMAIL || !env.LOGIN_PASSWORD, 'Set LOGIN_EMAIL and LOGIN_PASSWORD in .env');
     const id = await loginAttemptId();
     expect(id).toBeTruthy();
-    const { response, body } = await postSendOtp({ loginAttemptId: id, method: 'SMS' }, testInfo);
+    const { response, body } = await postSendOtp(
+      { loginAttemptId: id, method: 'SMS' },
+      testInfo,
+      env.LOGIN_EMAIL
+    );
     expectHttpStatus(response, 400);
     expectJsonContentType(response);
     expectAuthSendOtpBadRequestBody(body, {
@@ -74,7 +81,8 @@ test.describe('Send OTP @negative', () => {
   test('Invalid loginAttemptId → 400', async ({}, testInfo) => {
     const { response, body } = await postSendOtp(
       { loginAttemptId: '00000000-0000-0000-0000-000000000000', method: 'EMAIL' },
-      testInfo
+      testInfo,
+      null
     );
     expectHttpStatus(response, 400);
     expectJsonContentType(response);

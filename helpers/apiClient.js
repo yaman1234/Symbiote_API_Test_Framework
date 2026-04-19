@@ -21,6 +21,9 @@ async function createApiClient(extraHeaders = {}) {
       // TODO: Add shared payload sanitization and correlation IDs.
       return context.post(path, options);
     },
+    async patch(path, options = {}) {
+      return context.patch(path, options);
+    },
     async dispose() {
       await context.dispose();
     }

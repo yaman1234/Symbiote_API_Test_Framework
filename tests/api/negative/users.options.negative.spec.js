@@ -13,6 +13,8 @@ test.describe('User options @negative @users', () => {
       const body = await res.json();
       await publishApiResponse(testInfo, {
         urlHint: 'orgs/users/options-unauth',
+        response: res,
+        loginEmail: null,
         status: res.status(),
         statusText: res.statusText(),
         body,

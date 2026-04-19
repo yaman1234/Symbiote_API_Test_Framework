@@ -17,6 +17,8 @@ test.describe('Create org user @negative @users', () => {
       const body = await res.json();
       await publishApiResponse(testInfo, {
         urlHint: 'orgs/users-create-unauth',
+        response: res,
+        loginEmail: null,
         status: res.status(),
         statusText: res.statusText(),
         body,
@@ -69,10 +71,12 @@ test.describe('Create org user @negative @users', () => {
       const body = await res.json();
       await publishApiResponse(testInfo, {
         urlHint: 'orgs/users-create-validation',
+        response: res,
+        loginEmail: session.loginEmail,
         status: res.status(),
         statusText: res.statusText(),
         body,
-        requestPayload: base
+        requestPayload: { path, body: base }
       });
       expectHttpStatus(res, 422);
       expectJsonContentType(res);

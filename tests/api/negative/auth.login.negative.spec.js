@@ -25,6 +25,8 @@ test.describe('Login @negative', () => {
       const body = await response.json();
       await publishApiResponse(testInfo, {
         urlHint: 'login',
+        response,
+        loginEmail: payload.email,
         status: response.status(),
         statusText: response.statusText(),
         body,
@@ -104,6 +106,8 @@ test.describe('Login @negative', () => {
       const body = await response.json();
       await publishApiResponse(testInfo, {
         urlHint: 'login',
+        response,
+        loginEmail: requestPayload.email,
         status: response.status(),
         statusText: response.statusText(),
         body,
@@ -129,6 +133,8 @@ test.describe('Login @negative', () => {
       const body = await response.json();
       await publishApiResponse(testInfo, {
         urlHint: 'login',
+        response,
+        loginEmail: requestPayload.email,
         status: response.status(),
         statusText: response.statusText(),
         body,

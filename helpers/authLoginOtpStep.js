@@ -14,6 +14,8 @@ async function postLoginExpectOtpChallenge(client, testInfo, loginRequest) {
   const loginBody = await loginRes.json();
   await publishApiResponse(testInfo, {
     urlHint: 'login',
+    response: loginRes,
+    loginEmail: loginRequest && typeof loginRequest.email === 'string' ? loginRequest.email.trim() : undefined,
     status: loginRes.status(),
     statusText: loginRes.statusText(),
     body: loginBody,

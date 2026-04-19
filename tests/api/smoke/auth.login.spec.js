@@ -15,6 +15,8 @@ test.describe('Login @smoke', () => {
       const body = await response.json();
       await publishApiResponse(testInfo, {
         urlHint: 'login',
+        response,
+        loginEmail: requestPayload.email,
         status: response.status(),
         statusText: response.statusText(),
         body,

@@ -42,12 +42,16 @@ test.describe('List org users @smoke @users', () => {
       const listBody = await listRes.json();
       await publishApiResponse(testInfo, {
         urlHint: 'orgs/users',
+        response: listRes,
+        loginEmail: session.loginEmail,
         status: listRes.status(),
         statusText: listRes.statusText(),
         body: listBody,
         requestPayload: { path: listUrl, query: params }
       });
       expectSuccessStatus(listRes, listBody);
+      expectJsonContentType(listRes);
+      expectOrgUsersListSuccessBody(listBody);
 
     } finally {
       await client.dispose();

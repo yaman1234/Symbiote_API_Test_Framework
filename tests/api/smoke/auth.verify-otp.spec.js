@@ -29,6 +29,8 @@ test.describe('Verify OTP @smoke', () => {
       const sendBody = await sendRes.json();
       await publishApiResponse(testInfo, {
         urlHint: 'send-otp',
+        response: sendRes,
+        loginEmail: loginRequest.email,
         status: sendRes.status(),
         statusText: sendRes.statusText(),
         body: sendBody,
@@ -46,6 +48,8 @@ test.describe('Verify OTP @smoke', () => {
       const verifyBody = await verifyRes.json();
       await publishApiResponse(testInfo, {
         urlHint: 'verify-otp',
+        response: verifyRes,
+        loginEmail: loginRequest.email,
         status: verifyRes.status(),
         statusText: verifyRes.statusText(),
         body: verifyBody,

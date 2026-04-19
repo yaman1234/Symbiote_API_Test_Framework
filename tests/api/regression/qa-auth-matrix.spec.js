@@ -40,7 +40,15 @@ test.describe('QA test matrix @regression', () => {
       const requestPayload = { email: env.LOGIN_EMAIL, password: env.LOGIN_PASSWORD };
       const response = await client.post('auth/login', { data: requestPayload });
       const body = await response.json();
-      await publishApiResponse(testInfo, { urlHint: 'login', status: response.status(), statusText: response.statusText(), body, requestPayload });
+      await publishApiResponse(testInfo, {
+        urlHint: 'login',
+        response,
+        loginEmail: requestPayload.email,
+        status: response.status(),
+        statusText: response.statusText(),
+        body,
+        requestPayload
+      });
       expectSuccessStatus(response, body);
       expectJsonContentType(response);
       expectAuthLoginOtpSuccessBody(body);
@@ -59,7 +67,15 @@ test.describe('QA test matrix @regression', () => {
       };
       const response = await client.post('auth/login', { data: requestPayload });
       const body = await response.json();
-      await publishApiResponse(testInfo, { urlHint: 'login', status: response.status(), statusText: response.statusText(), body, requestPayload });
+      await publishApiResponse(testInfo, {
+        urlHint: 'login',
+        response,
+        loginEmail: requestPayload.email,
+        status: response.status(),
+        statusText: response.statusText(),
+        body,
+        requestPayload
+      });
       expectSuccessStatus(response, body);
       expectJsonContentType(response);
       expectAuthLoginOtpSuccessBody(body);
@@ -75,7 +91,15 @@ test.describe('QA test matrix @regression', () => {
       const requestPayload = { email: env.LOGIN_EMAIL, password: WRONG_PASSWORD };
       const response = await client.post('auth/login', { data: requestPayload });
       const body = await response.json();
-      await publishApiResponse(testInfo, { urlHint: 'login', status: response.status(), statusText: response.statusText(), body, requestPayload });
+      await publishApiResponse(testInfo, {
+        urlHint: 'login',
+        response,
+        loginEmail: requestPayload.email,
+        status: response.status(),
+        statusText: response.statusText(),
+        body,
+        requestPayload
+      });
       expectHttpStatus(response, 401);
       expectJsonContentType(response);
       expectAuthInvalidCredentialsBody(body);
@@ -90,7 +114,15 @@ test.describe('QA test matrix @regression', () => {
       const requestPayload = { email: UNKNOWN_EMAIL, password: WRONG_PASSWORD };
       const response = await client.post('auth/login', { data: requestPayload });
       const body = await response.json();
-      await publishApiResponse(testInfo, { urlHint: 'login', status: response.status(), statusText: response.statusText(), body, requestPayload });
+      await publishApiResponse(testInfo, {
+        urlHint: 'login',
+        response,
+        loginEmail: requestPayload.email,
+        status: response.status(),
+        statusText: response.statusText(),
+        body,
+        requestPayload
+      });
       expectHttpStatus(response, 401);
       expectJsonContentType(response);
       expectAuthInvalidCredentialsBody(body);
@@ -114,7 +146,15 @@ test.describe('QA test matrix @regression', () => {
       const sendPayload = { loginAttemptId, method: 'EMAIL' };
       const sendRes = await client.post('auth/send-otp', { data: sendPayload });
       const sendBody = await sendRes.json();
-      await publishApiResponse(testInfo, { urlHint: 'send-otp', status: sendRes.status(), statusText: sendRes.statusText(), body: sendBody, requestPayload: sendPayload });
+      await publishApiResponse(testInfo, {
+        urlHint: 'send-otp',
+        response: sendRes,
+        loginEmail: env.LOGIN_EMAIL,
+        status: sendRes.status(),
+        statusText: sendRes.statusText(),
+        body: sendBody,
+        requestPayload: sendPayload
+      });
       expectSuccessStatus(sendRes, sendBody);
       expectJsonContentType(sendRes);
       expectAuthSendOtpSuccessBody(sendBody);
@@ -135,7 +175,15 @@ test.describe('QA test matrix @regression', () => {
       const sendPayload = { loginAttemptId: loginBody.data.loginAttemptId, method: 'SMS' };
       const sendRes = await client.post('auth/send-otp', { data: sendPayload });
       const sendBody = await sendRes.json();
-      await publishApiResponse(testInfo, { urlHint: 'send-otp', status: sendRes.status(), statusText: sendRes.statusText(), body: sendBody, requestPayload: sendPayload });
+      await publishApiResponse(testInfo, {
+        urlHint: 'send-otp',
+        response: sendRes,
+        loginEmail: env.LOGIN_EMAIL,
+        status: sendRes.status(),
+        statusText: sendRes.statusText(),
+        body: sendBody,
+        requestPayload: sendPayload
+      });
       expectHttpStatus(sendRes, 400);
       expectJsonContentType(sendRes);
       expectAuthSendOtpBadRequestBody(sendBody, {
@@ -167,7 +215,15 @@ test.describe('QA test matrix @regression', () => {
       const verifyPayload = { loginAttemptId, otp: env.VERIFY_OTP };
       const verifyRes = await client.post('auth/verify-otp', { data: verifyPayload });
       const verifyBody = await verifyRes.json();
-      await publishApiResponse(testInfo, { urlHint: 'verify-otp', status: verifyRes.status(), statusText: verifyRes.statusText(), body: verifyBody, requestPayload: verifyPayload });
+      await publishApiResponse(testInfo, {
+        urlHint: 'verify-otp',
+        response: verifyRes,
+        loginEmail: env.LOGIN_EMAIL,
+        status: verifyRes.status(),
+        statusText: verifyRes.statusText(),
+        body: verifyBody,
+        requestPayload: verifyPayload
+      });
       expectSuccessStatus(verifyRes, verifyBody);
       expectJsonContentType(verifyRes);
       expectAuthVerifyOtpSuccessBody(verifyBody);
@@ -196,7 +252,15 @@ test.describe('QA test matrix @regression', () => {
       const verifyPayload = { loginAttemptId: loginBody.data.loginAttemptId, otp: env.VERIFY_OTP };
       const verifyRes = await client.post('auth/verify-otp', { data: verifyPayload });
       const verifyBody = await verifyRes.json();
-      await publishApiResponse(testInfo, { urlHint: 'verify-otp', status: verifyRes.status(), statusText: verifyRes.statusText(), body: verifyBody, requestPayload: verifyPayload });
+      await publishApiResponse(testInfo, {
+        urlHint: 'verify-otp',
+        response: verifyRes,
+        loginEmail: env.LOGIN_EMAIL,
+        status: verifyRes.status(),
+        statusText: verifyRes.statusText(),
+        body: verifyBody,
+        requestPayload: verifyPayload
+      });
       expectHttpStatus(verifyRes, 400);
       expectJsonContentType(verifyRes);
       expectAuthVerifyOtpBadRequestBody(verifyBody, 'OTP not generated yet.', 'AUTH_FORBIDDEN');
@@ -225,7 +289,15 @@ test.describe('QA test matrix @regression', () => {
         data: { loginAttemptId, otp: '999999' }
       });
       const verifyBody = await verifyRes.json();
-      await publishApiResponse(testInfo, { urlHint: 'verify-otp', status: verifyRes.status(), statusText: verifyRes.statusText(), body: verifyBody, requestPayload: { loginAttemptId, otp: '999999' } });
+      await publishApiResponse(testInfo, {
+        urlHint: 'verify-otp',
+        response: verifyRes,
+        loginEmail: env.LOGIN_EMAIL,
+        status: verifyRes.status(),
+        statusText: verifyRes.statusText(),
+        body: verifyBody,
+        requestPayload: { loginAttemptId, otp: '999999' }
+      });
       expectHttpStatus(verifyRes, 401);
       expectJsonContentType(verifyRes);
       expectAuthVerifyOtpInvalidOtpBody(verifyBody);
@@ -258,7 +330,15 @@ test.describe('QA test matrix @regression', () => {
         data: { loginAttemptId, otp: env.VERIFY_OTP }
       });
       const v2Body = await v2.json();
-      await publishApiResponse(testInfo, { urlHint: 'verify-otp', status: v2.status(), statusText: v2.statusText(), body: v2Body, requestPayload: { loginAttemptId, otp: env.VERIFY_OTP } });
+      await publishApiResponse(testInfo, {
+        urlHint: 'verify-otp',
+        response: v2,
+        loginEmail: env.LOGIN_EMAIL,
+        status: v2.status(),
+        statusText: v2.statusText(),
+        body: v2Body,
+        requestPayload: { loginAttemptId, otp: env.VERIFY_OTP }
+      });
       expectHttpStatus(v2, 400);
       expectJsonContentType(v2);
       expectAuthVerifyOtpBadRequestBody(
@@ -292,7 +372,15 @@ test.describe('QA test matrix @regression', () => {
       const refreshPayload = { refreshToken: verifyBody.data.refreshToken };
       const refreshRes = await client.post('auth/refresh', { data: refreshPayload });
       const refreshBody = await refreshRes.json();
-      await publishApiResponse(testInfo, { urlHint: 'refresh', status: refreshRes.status(), statusText: refreshRes.statusText(), body: refreshBody, requestPayload: refreshPayload });
+      await publishApiResponse(testInfo, {
+        urlHint: 'refresh',
+        response: refreshRes,
+        loginEmail: env.LOGIN_EMAIL,
+        status: refreshRes.status(),
+        statusText: refreshRes.statusText(),
+        body: refreshBody,
+        requestPayload: refreshPayload
+      });
       expectSuccessStatus(refreshRes, refreshBody);
       expectJsonContentType(refreshRes);
       expectAuthRefreshSuccessBody(refreshBody);
@@ -332,7 +420,15 @@ test.describe('QA test matrix @regression', () => {
     try {
       const refreshRes = await cookieClient.post('auth/refresh', { data: {} });
       const refreshBody = await refreshRes.json();
-      await publishApiResponse(testInfo, { urlHint: 'refresh-cookie', status: refreshRes.status(), statusText: refreshRes.statusText(), body: refreshBody, requestPayload: {} });
+      await publishApiResponse(testInfo, {
+        urlHint: 'refresh-cookie',
+        response: refreshRes,
+        loginEmail: env.LOGIN_EMAIL,
+        status: refreshRes.status(),
+        statusText: refreshRes.statusText(),
+        body: refreshBody,
+        requestPayload: {}
+      });
       if (!refreshRes.ok()) {
         test.skip(
           true,
@@ -353,7 +449,15 @@ test.describe('QA test matrix @regression', () => {
       const payload = { refreshToken: MALFORMED_REFRESH };
       const res = await client.post('auth/refresh', { data: payload });
       const body = await res.json();
-      await publishApiResponse(testInfo, { urlHint: 'refresh', status: res.status(), statusText: res.statusText(), body, requestPayload: payload });
+      await publishApiResponse(testInfo, {
+        urlHint: 'refresh',
+        response: res,
+        loginEmail: null,
+        status: res.status(),
+        statusText: res.statusText(),
+        body,
+        requestPayload: payload
+      });
       expectHttpStatus(res, 401);
       expectJsonContentType(res);
       expectAuthRefreshInvalidBody(body);
@@ -380,9 +484,13 @@ test.describe('QA test matrix @regression', () => {
       }
       await publishApiResponse(testInfo, {
         urlHint: path,
+        response,
+        path,
+        loginEmail: null,
         status: response.status(),
         statusText: response.statusText(),
-        body: body || { _parseError: true }
+        body: body || { _parseError: true },
+        requestPayload: { path }
       });
       expectHttpStatus(response, 401);
       expectJsonContentType(response);
@@ -421,7 +529,15 @@ test.describe('QA test matrix @regression', () => {
         data: { loginAttemptId, otp: env.VERIFY_OTP }
       });
       const verifyBody = await verifyRes.json();
-      await publishApiResponse(testInfo, { urlHint: 'verify-otp-tier3', status: verifyRes.status(), statusText: verifyRes.statusText(), body: verifyBody, requestPayload: { loginAttemptId, otp: env.VERIFY_OTP } });
+      await publishApiResponse(testInfo, {
+        urlHint: 'verify-otp-tier3',
+        response: verifyRes,
+        loginEmail: env.TIER3_MEMBER_EMAIL,
+        status: verifyRes.status(),
+        statusText: verifyRes.statusText(),
+        body: verifyBody,
+        requestPayload: { loginAttemptId, otp: env.VERIFY_OTP }
+      });
       expectSuccessStatus(verifyRes, verifyBody);
       expectAuthVerifyOtpSuccessBody(verifyBody);
       expect(verifyBody.data.org.orgRole).toBe('MEMBER');

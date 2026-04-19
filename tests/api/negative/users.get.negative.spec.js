@@ -3,15 +3,17 @@ const { createApiClient } = require('../../../helpers/apiClient');
 const { expectHttpStatus, expectJsonContentType, expectJsonErrorBody } = require('../../../helpers/assertions');
 const { publishApiResponse } = require('../../../helpers/apiResponseReport');
 
-test.describe('List org users @negative @users', () => {
+test.describe('Get org user @negative @users', () => {
   test('GET without Authorization → 401', async ({}, testInfo) => {
     const client = await createApiClient();
     try {
-      const path = 'orgs/00000000-0000-0000-0000-000000000001/users';
+      const orgId = '00000000-0000-0000-0000-000000000001';
+      const orgUserId = '00000000-0000-0000-0000-000000000002';
+      const path = `orgs/${orgId}/users/${orgUserId}`;
       const res = await client.get(path);
       const body = await res.json();
       await publishApiResponse(testInfo, {
-        urlHint: 'orgs/users-unauth',
+        urlHint: 'orgs/users-get-unauth',
         response: res,
         loginEmail: null,
         status: res.status(),
@@ -31,9 +33,4 @@ test.describe('List org users @negative @users', () => {
       await client.dispose();
     }
   });
-
-//TODO: Add tests for other negative scenarios
-
-
-
 });

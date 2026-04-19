@@ -28,10 +28,12 @@ async function postCreate(client, session, payload, testInfo, urlHint = 'orgs/us
   const body = await res.json();
   await publishApiResponse(testInfo, {
     urlHint,
+    response: res,
+    loginEmail: session.loginEmail,
     status: res.status(),
     statusText: res.statusText(),
     body,
-    requestPayload: payload
+    requestPayload: { path, body: payload }
   });
   return { res, body, path };
 }

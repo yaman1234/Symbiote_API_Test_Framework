@@ -15,13 +15,15 @@ const { publishApiResponse } = require('../../../helpers/apiResponseReport');
 const { otpChainTestsSkippedReason } = require('../../../helpers/otpChainSkip');
 
 test.describe('Verify OTP @negative', () => {
-  async function postVerifyOtp(payload, testInfo) {
+  async function postVerifyOtp(payload, testInfo, loginEmail) {
     const client = await createApiClient();
     try {
       const response = await client.post('auth/verify-otp', { data: payload });
       const body = await response.json();
       await publishApiResponse(testInfo, {
         urlHint: 'verify-otp',
+        response,
+        ...(loginEmail !== undefined && { loginEmail }),
         status: response.status(),
         statusText: response.statusText(),
         body,
@@ -49,7 +51,7 @@ test.describe('Verify OTP @negative', () => {
     }
 
     const payload = { loginAttemptId, otp: env.VERIFY_OTP };
-    const { response, body } = await postVerifyOtp(payload, testInfo);
+    const { response, body } = await postVerifyOtp(payload, testInfo, env.LOGIN_EMAIL);
     expectHttpStatus(response, 400);
     expectJsonContentType(response);
     expectAuthVerifyOtpBadRequestBody(body, 'OTP not generated yet.', 'AUTH_FORBIDDEN');
@@ -79,7 +81,8 @@ test.describe('Verify OTP @negative', () => {
 
     const { response, body } = await postVerifyOtp(
       { loginAttemptId, otp: '999999' },
-      testInfo
+      testInfo,
+      env.LOGIN_EMAIL
     );
     expectHttpStatus(response, 401);
     expectJsonContentType(response);
@@ -87,7 +90,7 @@ test.describe('Verify OTP @negative', () => {
   });
 
   test('Missing loginAttemptId → 422', async ({}, testInfo) => {
-    const { response, body } = await postVerifyOtp({ otp: '111111' }, testInfo);
+    const { response, body } = await postVerifyOtp({ otp: '111111' }, testInfo, null);
     expectHttpStatus(response, 422);
     expectJsonContentType(response);
     expectAuthVerifyOtpValidationErrorBody(body, 'loginAttemptId');
@@ -107,7 +110,7 @@ test.describe('Verify OTP @negative', () => {
       await client.dispose();
     }
 
-    const { response, body } = await postVerifyOtp({ loginAttemptId }, testInfo);
+    const { response, body } = await postVerifyOtp({ loginAttemptId }, testInfo, env.LOGIN_EMAIL);
     expectHttpStatus(response, 422);
     expectJsonContentType(response);
     expectAuthVerifyOtpValidationErrorBody(body, 'otp');
@@ -142,7 +145,8 @@ test.describe('Verify OTP @negative', () => {
 
     const { response, body } = await postVerifyOtp(
       { loginAttemptId, otp: env.VERIFY_OTP },
-      testInfo
+      testInfo,
+      env.LOGIN_EMAIL
     );
     expectHttpStatus(response, 400);
     expectJsonContentType(response);
