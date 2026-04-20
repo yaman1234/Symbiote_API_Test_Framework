@@ -38,7 +38,10 @@ test.describe('Login @negative', () => {
     }
   }
 
-  test('Wrong password → 401', async ({}, testInfo) => {
+  // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
+
+
+  test('POST /auth/login : rejects wrong password → 401', async ({}, testInfo) => {
     const { response, body } = await postLogin(
       { email: KNOWN_EMAIL, password: WRONG_PASSWORD },
       testInfo
@@ -48,7 +51,10 @@ test.describe('Login @negative', () => {
     expectAuthInvalidCredentialsBody(body);
   });
 
-  test('Unknown email → 401', async ({}, testInfo) => {
+  // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
+
+
+  test('POST /auth/login : rejects unknown email → 401', async ({}, testInfo) => {
     const { response, body } = await postLogin(
       { email: UNKNOWN_EMAIL, password: WRONG_PASSWORD },
       testInfo
@@ -58,21 +64,30 @@ test.describe('Login @negative', () => {
     expectAuthInvalidCredentialsBody(body);
   });
 
-  test('Missing email → 422', async ({}, testInfo) => {
+  // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
+
+
+  test('POST /auth/login : rejects missing email → 422', async ({}, testInfo) => {
     const { response, body } = await postLogin({ password: 'x' }, testInfo);
     expectHttpStatus(response, 422);
     expectJsonContentType(response);
     expectAuthValidationErrorBody(body, 'email');
   });
 
-  test('Missing password → 422', async ({}, testInfo) => {
+  // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
+
+
+  test('POST /auth/login : rejects missing password → 422', async ({}, testInfo) => {
     const { response, body } = await postLogin({ email: KNOWN_EMAIL }, testInfo);
     expectHttpStatus(response, 422);
     expectJsonContentType(response);
     expectAuthValidationErrorBody(body, 'password');
   });
 
-  test('Invalid email → 422', async ({}, testInfo) => {
+  // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
+
+
+  test('POST /auth/login : rejects invalid email → 422', async ({}, testInfo) => {
     const { response, body } = await postLogin(
       { email: 'not-an-email', password: 'SomePassword1!' },
       testInfo
@@ -82,7 +97,10 @@ test.describe('Login @negative', () => {
     expectAuthValidationErrorBody(body);
   });
 
-  test('Empty password → 422', async ({}, testInfo) => {
+  // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
+
+
+  test('POST /auth/login : rejects empty password → 422', async ({}, testInfo) => {
     const { response, body } = await postLogin(
       { email: KNOWN_EMAIL, password: '' },
       testInfo
@@ -93,11 +111,12 @@ test.describe('Login @negative', () => {
   });
 
   /** Contract: padded + uppercase email succeeds once API trims before validation (not default smoke). */
-  test('OTP challenge with spaced + uppercase email (trim before lookup)', async ({}, testInfo) => {
+  // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
+
+  test('POST /auth/login : Trims extra spaces in Email and accepts it', async ({}, testInfo) => {
     test.skip(!env.LOGIN_EMAIL || !env.LOGIN_PASSWORD, 'Set LOGIN_EMAIL and LOGIN_PASSWORD in .env');
 
-    const normalized = env.LOGIN_EMAIL.trim();
-    const messyEmail = `  ${normalized.toUpperCase()}   `;
+    const messyEmail = `  ${env.LOGIN_EMAIL}   `;
 
     const client = await createApiClient();
     try {
@@ -120,13 +139,15 @@ test.describe('Login @negative', () => {
       await client.dispose();
     }
   });
-  test('OTP challenge with uppercase email (lowercased before lookup)', async ({}, testInfo) => {
+  // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
+
+  test('POST /auth/login : Accepts uppercase email', async ({}, testInfo) => {
     test.skip(!env.LOGIN_EMAIL || !env.LOGIN_PASSWORD, 'Set LOGIN_EMAIL and LOGIN_PASSWORD in .env');
 
     const client = await createApiClient();
     try {
       const requestPayload = {
-        email: env.LOGIN_EMAIL.trim().toUpperCase(),
+        email: env.LOGIN_EMAIL.toUpperCase(),
         password: env.LOGIN_PASSWORD
       };
       const response = await client.post('auth/login', { data: requestPayload });

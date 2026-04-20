@@ -44,7 +44,9 @@ function expectNonSuccess(res) {
 }
 
 test.describe('Create user rules @regression @users', () => {
-  test('Employee cannot create users', async ({}, testInfo) => {
+  // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
+
+  test('POST /orgs/:orgId/users : rejects employee cannot create users', async ({}, testInfo) => {
     test.skip(!env.USER_MGMT_EMPLOYEE_EMAIL, 'Set USER_MGMT_EMPLOYEE_EMAIL');
     test.skip(!env.USER_CREATE_BRANCH_ID, 'Set USER_CREATE_BRANCH_ID');
     const password = env.USER_MGMT_EMPLOYEE_PASSWORD || env.LOGIN_PASSWORD;
@@ -75,7 +77,10 @@ test.describe('Create user rules @regression @users', () => {
     }
   });
 
-  test('Supervisor can create EMPLOYEE in own branch', async ({}, testInfo) => {
+  // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
+
+
+  test('POST /orgs/:orgId/users : allows supervisor to create EMPLOYEE in own branch', async ({}, testInfo) => {
     test.skip(!env.USER_MGMT_SUPERVISOR_EMAIL, 'Set USER_MGMT_SUPERVISOR_EMAIL');
     const password = env.USER_MGMT_SUPERVISOR_PASSWORD || env.LOGIN_PASSWORD;
     test.skip(!password, 'Set LOGIN_PASSWORD');
@@ -106,7 +111,10 @@ test.describe('Create user rules @regression @users', () => {
     }
   });
 
-  test('Supervisor cannot create in another branch', async ({}, testInfo) => {
+  // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
+
+
+  test('POST /orgs/:orgId/users : rejects supervisor cannot create in another branch', async ({}, testInfo) => {
     test.skip(!env.USER_MGMT_SUPERVISOR_EMAIL, 'Set USER_MGMT_SUPERVISOR_EMAIL');
     test.skip(!env.USER_CREATE_WRONG_BRANCH_ID, 'Set USER_CREATE_WRONG_BRANCH_ID (branch ≠ supervisor branch)');
     const password = env.USER_MGMT_SUPERVISOR_PASSWORD || env.LOGIN_PASSWORD;
@@ -141,7 +149,10 @@ test.describe('Create user rules @regression @users', () => {
     }
   });
 
-  test('Supervisor cannot create with branchRole SUPERVISOR', async ({}, testInfo) => {
+  // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
+
+
+  test('POST /orgs/:orgId/users : rejects supervisor cannot create with branchRole SUPERVISOR', async ({}, testInfo) => {
     test.skip(!env.USER_MGMT_SUPERVISOR_EMAIL, 'Set USER_MGMT_SUPERVISOR_EMAIL');
     const password = env.USER_MGMT_SUPERVISOR_PASSWORD || env.LOGIN_PASSWORD;
     test.skip(!password, 'Set LOGIN_PASSWORD');
@@ -173,7 +184,10 @@ test.describe('Create user rules @regression @users', () => {
     }
   });
 
-  test('Duplicate membership — same email twice in same org', async ({}, testInfo) => {
+  // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
+
+
+  test('POST /orgs/:orgId/users : rejects duplicate membership — same email twice in same org', async ({}, testInfo) => {
     test.skip(!env.USER_MGMT_OWNER_EMAIL, 'Set USER_MGMT_OWNER_EMAIL');
     test.skip(!env.USER_CREATE_BRANCH_ID, 'Set USER_CREATE_BRANCH_ID');
     const password = env.USER_MGMT_OWNER_PASSWORD || env.LOGIN_PASSWORD;
@@ -212,7 +226,10 @@ test.describe('Create user rules @regression @users', () => {
     }
   });
 
-  test('Departments must belong to org/branch — invalid department id rejected', async ({}, testInfo) => {
+  // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
+
+
+  test('POST /orgs/:orgId/users : rejects departments must belong to org/branch — invalid department id rejected', async ({}, testInfo) => {
     test.skip(!env.USER_MGMT_OWNER_EMAIL, 'Set USER_MGMT_OWNER_EMAIL');
     test.skip(!env.USER_CREATE_BRANCH_ID, 'Set USER_CREATE_BRANCH_ID');
     const password = env.USER_MGMT_OWNER_PASSWORD || env.LOGIN_PASSWORD;
@@ -243,7 +260,10 @@ test.describe('Create user rules @regression @users', () => {
     }
   });
 
-  test('Invalid supervisorOrgUserId rejected', async ({}, testInfo) => {
+  // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
+
+
+  test('POST /orgs/:orgId/users : rejects invalid supervisorOrgUserId', async ({}, testInfo) => {
     test.skip(!env.USER_MGMT_OWNER_EMAIL, 'Set USER_MGMT_OWNER_EMAIL');
     test.skip(!env.USER_CREATE_BRANCH_ID, 'Set USER_CREATE_BRANCH_ID');
     const password = env.USER_MGMT_OWNER_PASSWORD || env.LOGIN_PASSWORD;
@@ -275,7 +295,10 @@ test.describe('Create user rules @regression @users', () => {
     }
   });
 
-  test('Supervisor cannot set payroll fields', async ({}, testInfo) => {
+  // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
+
+
+  test('POST /orgs/:orgId/users : rejects supervisor cannot set payroll fields', async ({}, testInfo) => {
     test.skip(!env.USER_MGMT_SUPERVISOR_EMAIL, 'Set USER_MGMT_SUPERVISOR_EMAIL');
     const password = env.USER_MGMT_SUPERVISOR_PASSWORD || env.LOGIN_PASSWORD;
     test.skip(!password, 'Set LOGIN_PASSWORD');
@@ -310,7 +333,10 @@ test.describe('Create user rules @regression @users', () => {
     }
   });
 
-  test('Supervisor cannot set modules', async ({}, testInfo) => {
+  // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
+
+
+  test('POST /orgs/:orgId/users : rejects supervisor cannot set modules', async ({}, testInfo) => {
     test.skip(!env.USER_MGMT_SUPERVISOR_EMAIL, 'Set USER_MGMT_SUPERVISOR_EMAIL');
     const password = env.USER_MGMT_SUPERVISOR_PASSWORD || env.LOGIN_PASSWORD;
     test.skip(!password, 'Set LOGIN_PASSWORD');

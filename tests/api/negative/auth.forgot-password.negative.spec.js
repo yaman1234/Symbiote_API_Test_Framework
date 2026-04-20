@@ -8,7 +8,9 @@ const { expectAuthValidationErrorBody } = require('../../../helpers/assertions.a
 const { publishApiResponse } = require('../../../helpers/apiResponseReport');
 
 test.describe('Forgot password @negative @auth', () => {
-  test('POST without email → 422', async ({}, testInfo) => {
+  // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
+
+  test('POST /auth/forgot-password : rejects POST without email → 422', async ({}, testInfo) => {
     const client = await createApiClient();
     try {
       const res = await client.post('auth/forgot-password', { data: {} });

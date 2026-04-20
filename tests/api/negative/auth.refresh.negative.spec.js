@@ -31,14 +31,20 @@ test.describe('Refresh token @negative', () => {
     }
   }
 
-  test('No refreshToken in body (and no cookie) → 401', async ({}, testInfo) => {
+  // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
+
+
+  test('POST /auth/refresh : rejects no refreshToken in body (and no cookie) → 401', async ({}, testInfo) => {
     const { response, body } = await postRefresh(testInfo, { data: {}, loginEmail: null });
     expectHttpStatus(response, 401);
     expectJsonContentType(response);
     expectAuthRefreshInvalidBody(body);
   });
 
-  test('Malformed refresh token (not tokenId.secret) → 401', async ({}, testInfo) => {
+  // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
+
+
+  test('POST /auth/refresh : rejects malformed refresh token (not tokenId.secret) → 401', async ({}, testInfo) => {
     const { response, body } = await postRefresh(testInfo, {
       data: { refreshToken: 'not-a-valid-format' },
       loginEmail: null
@@ -48,7 +54,10 @@ test.describe('Refresh token @negative', () => {
     expectAuthRefreshInvalidBody(body);
   });
 
-  test('Well-formed but unknown session → 401', async ({}, testInfo) => {
+  // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
+
+
+  test('POST /auth/refresh : rejects well-formed but unknown session → 401', async ({}, testInfo) => {
     const { response, body } = await postRefresh(testInfo, {
       data: { refreshToken: '00000000-0000-0000-0000-000000000000.fake-secret-part' },
       loginEmail: null
@@ -58,7 +67,10 @@ test.describe('Refresh token @negative', () => {
     expectAuthRefreshInvalidBody(body);
   });
 
-  test('Reusing refresh token after rotation → 401', async ({}, testInfo) => {
+  // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
+
+
+  test('POST /auth/refresh : rejects reusing refresh token after rotation → 401', async ({}, testInfo) => {
     test.skip(!env.LOGIN_EMAIL || !env.LOGIN_PASSWORD, 'Set LOGIN_EMAIL and LOGIN_PASSWORD in .env');
     const skipOtp = otpChainTestsSkippedReason();
     test.skip(!!skipOtp, skipOtp);

@@ -45,6 +45,14 @@ const env = {
   USER_CREATE_DEPARTMENT_IDS: process.env.USER_CREATE_DEPARTMENT_IDS || '',
   // Branch UUID not equal to supervisor's branch (e.g. Tier 3 branch-2) — regression: supervisor cannot create there
   USER_CREATE_WRONG_BRANCH_ID: process.env.USER_CREATE_WRONG_BRANCH_ID || '',
+  // Tasks module: GET /orgs/:orgId/branches/:branchId/tasks
+  TASKS_BRANCH_ID: process.env.TASKS_BRANCH_ID || '',
+  TASKS_OWNER_EMAIL: process.env.TASKS_OWNER_EMAIL || '',
+  TASKS_OWNER_PASSWORD: process.env.TASKS_OWNER_PASSWORD || '',
+  TASKS_SUPERVISOR_EMAIL: process.env.TASKS_SUPERVISOR_EMAIL || '',
+  TASKS_SUPERVISOR_PASSWORD: process.env.TASKS_SUPERVISOR_PASSWORD || '',
+  TASKS_EMPLOYEE_EMAIL: process.env.TASKS_EMPLOYEE_EMAIL || '',
+  TASKS_EMPLOYEE_PASSWORD: process.env.TASKS_EMPLOYEE_PASSWORD || '',
   // Optional: raw token from forgot-password or invite email — enables password-action validate + set-password regression
   PASSWORD_ACTION_TOKEN_RAW: process.env.PASSWORD_ACTION_TOKEN_RAW || '',
   // Expected purpose after validate: RESET_PASSWORD | SET_PASSWORD (asserted when token env is set)

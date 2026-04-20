@@ -28,7 +28,9 @@ const { publishApiResponse } = require('../../../helpers/apiResponseReport');
 const { otpChainTestsSkippedReason } = require('../../../helpers/otpChainSkip');
 
 test.describe('User options (branch dropdown) @smoke @users', () => {
-  test('GET /orgs/:orgId/users/options?branchId= — shape and EMPLOYEE|SUPERVISOR only', async ({}, testInfo) => {
+  // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
+
+  test('GET /orgs/:orgId/users/options : returns branch options with valid shape and allowed roles', async ({}, testInfo) => {
     // --- Credentials: supervisor account used for user-management flows in QA ---
     test.skip(
       !env.USER_MGMT_SUPERVISOR_EMAIL,

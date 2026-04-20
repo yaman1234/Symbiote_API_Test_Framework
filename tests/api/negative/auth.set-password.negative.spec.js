@@ -9,7 +9,9 @@ const { expectAuthValidationErrorBody, expectAuthPasswordActionBadRequestBody } 
 const { publishApiResponse } = require('../../../helpers/apiResponseReport');
 
 test.describe('Set password @negative @auth', () => {
-  test('POST with weak password → 422', async ({}, testInfo) => {
+  // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
+
+  test('POST /auth/set-password : rejects POST with weak password → 422', async ({}, testInfo) => {
     const client = await createApiClient();
     try {
       const payload = {
@@ -36,7 +38,10 @@ test.describe('Set password @negative @auth', () => {
     }
   });
 
-  test('POST with mismatched passwords → 400 (requires valid token)', async ({}, testInfo) => {
+  // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
+
+
+  test('POST /auth/set-password : rejects POST with mismatched passwords → 400 (requires valid token)', async ({}, testInfo) => {
     test.skip(!env.PASSWORD_ACTION_TOKEN_RAW, 'Set PASSWORD_ACTION_TOKEN_RAW from email link to run mismatch case');
     const client = await createApiClient();
     try {

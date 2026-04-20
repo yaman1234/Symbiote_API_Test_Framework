@@ -23,7 +23,9 @@ function resolveCredential(explicitEmail, seededEmail, explicitPassword) {
 }
 
 test.describe('User options access by role @regression @users', () => {
-  test('Owner — options for a branch (any branch)', async ({}, testInfo) => {
+  // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
+
+  test('GET /orgs/:orgId/users/options : returns options for owner-selected branch', async ({}, testInfo) => {
     const { email, password } = resolveCredential(
       env.USER_MGMT_OWNER_EMAIL,
       ownerPersona && ownerPersona.email,
@@ -73,7 +75,10 @@ test.describe('User options access by role @regression @users', () => {
     }
   });
 
-  test('Employee — options for own branch only', async ({}, testInfo) => {
+  // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
+
+
+  test('GET /orgs/:orgId/users/options : returns options for employee own branch only', async ({}, testInfo) => {
     const { email, password } = resolveCredential(
       env.USER_MGMT_EMPLOYEE_EMAIL,
       employeePersona && employeePersona.email,

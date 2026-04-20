@@ -8,7 +8,9 @@ const { publishApiResponse } = require('../../../helpers/apiResponseReport');
 const { otpChainTestsSkippedReason } = require('../../../helpers/otpChainSkip');
 
 test.describe('Verify OTP @smoke', () => {
-  test('Full login flow', async ({}, testInfo) => {
+  // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
+
+  test('POST /auth/verify-otp : returns tokens after full login flow', async ({}, testInfo) => {
     test.skip(
       !env.LOGIN_EMAIL || !env.LOGIN_PASSWORD,
       'Set LOGIN_EMAIL and LOGIN_PASSWORD in .env'

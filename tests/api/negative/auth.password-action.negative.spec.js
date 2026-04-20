@@ -8,7 +8,9 @@ const { expectAuthValidationErrorBody, expectAuthPasswordActionBadRequestBody } 
 const { publishApiResponse } = require('../../../helpers/apiResponseReport');
 
 test.describe('Password action validate @negative @auth', () => {
-  test('POST without token → 422', async ({}, testInfo) => {
+  // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
+
+  test('POST /auth/password-action : rejects POST without token → 422', async ({}, testInfo) => {
     const client = await createApiClient();
     try {
       const res = await client.post('auth/password-action/validate', { data: {} });
@@ -30,7 +32,10 @@ test.describe('Password action validate @negative @auth', () => {
     }
   });
 
-  test('POST with invalid / unknown token → 400', async ({}, testInfo) => {
+  // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
+
+
+  test('POST /auth/password-action : rejects POST with invalid / unknown token → 400', async ({}, testInfo) => {
     const client = await createApiClient();
     try {
       const payload = {

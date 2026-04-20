@@ -27,6 +27,7 @@ Each **`Module_endpoint.md`** file documents coverage for one endpoint.
 | [Orgs_users-options.md](Orgs_users-options.md) | `GET /orgs/:orgId/users/options` |
 | [Orgs_users-create.md](Orgs_users-create.md) | `POST /orgs/:orgId/users` |
 | [Orgs_users-patch.md](Orgs_users-patch.md) | `PATCH /orgs/:orgId/users/:orgUserId` |
+| [Orgs_branches_tasks-list.md](Orgs_branches_tasks-list.md) | `GET /orgs/:orgId/branches/:branchId/tasks` |
 | [Misc_protected-route.md](Misc_protected-route.md) | `GET /{PROTECTED_API_PATH}` |
 
 ### Excel

@@ -13,7 +13,9 @@ const { buildCreateUserPayload } = require('../../../helpers/createUserPayload')
 const { parseUuidList } = require('../../../helpers/createUserPayload');
 
 test.describe('Create org user @smoke @users', () => {
-  test('POST /orgs/:orgId/users — fixed payload body', async ({}, testInfo) => {
+  // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
+
+  test('POST /orgs/:orgId/users : creates user with required payload', async ({}, testInfo) => {
     test.skip(!env.USER_MGMT_OWNER_EMAIL, 'Set USER_MGMT_OWNER_EMAIL (Owner)');
     const password = env.USER_MGMT_OWNER_PASSWORD || env.LOGIN_PASSWORD;
     test.skip(!password, 'Set LOGIN_PASSWORD');

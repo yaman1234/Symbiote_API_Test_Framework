@@ -46,7 +46,10 @@ test.describe('List users visibility @regression @users', () => {
     return { listRes, listBody };
   }
 
-  test('Owner sees organization-wide users', async ({}, testInfo) => {
+  // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
+
+
+  test('GET /orgs/:orgId/users : returns organization-wide users for owner', async ({}, testInfo) => {
     const { email, password } = resolveCredential(
       env.USER_MGMT_OWNER_EMAIL,
       ownerPersona && ownerPersona.email,
@@ -82,7 +85,10 @@ test.describe('List users visibility @regression @users', () => {
     }
   });
 
-  test('Employee sees only self in list', async ({}, testInfo) => {
+  // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
+
+
+  test('GET /orgs/:orgId/users : returns only self for employee', async ({}, testInfo) => {
     const { email, password } = resolveCredential(
       env.USER_MGMT_EMPLOYEE_EMAIL,
       employeePersona && employeePersona.email,
@@ -121,7 +127,10 @@ test.describe('List users visibility @regression @users', () => {
     }
   });
 
-  test('Supervisor: Returns users that are branch-scoped', async ({}, testInfo) => {
+  // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
+
+
+  test('GET /orgs/:orgId/users : returns branch-scoped users for supervisor', async ({}, testInfo) => {
     const { email, password } = resolveCredential(
       env.USER_MGMT_SUPERVISOR_EMAIL,
       supervisorPersona && supervisorPersona.email,

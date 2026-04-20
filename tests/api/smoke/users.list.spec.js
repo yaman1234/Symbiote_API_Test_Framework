@@ -12,7 +12,9 @@ const { publishApiResponse } = require('../../../helpers/apiResponseReport');
 const { otpChainTestsSkippedReason } = require('../../../helpers/otpChainSkip');
 
 test.describe('List org users @smoke @users', () => {
-  test('GET /orgs/:orgId/users — owner, pagination query', async ({}, testInfo) => {
+  // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
+
+  test('GET /orgs/:orgId/users : returns owner list with pagination', async ({}, testInfo) => {
     test.skip(!env.USER_MGMT_OWNER_EMAIL, 'Set USER_MGMT_OWNER_EMAIL (e.g. t1.owner@demo.com from qa-seeded-accounts.md)');
     const password = env.USER_MGMT_OWNER_PASSWORD || env.LOGIN_PASSWORD;
     test.skip(!password, 'Set USER_MGMT_OWNER_PASSWORD or LOGIN_PASSWORD');

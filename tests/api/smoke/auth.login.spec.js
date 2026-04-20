@@ -5,7 +5,9 @@ const { expectSuccessStatus, expectJsonContentType, expectJsonSuccessBody, expec
 const { publishApiResponse } = require('../../../helpers/apiResponseReport');
 
 test.describe('Login @smoke', () => {
-  test('OTP challenge', async ({}, testInfo) => {
+  // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
+
+  test('POST /auth/login : returns OTP challenge', async ({}, testInfo) => {
     test.skip(!env.LOGIN_EMAIL || !env.LOGIN_PASSWORD, 'Set LOGIN_EMAIL and LOGIN_PASSWORD in .env');
 
     const client = await createApiClient();

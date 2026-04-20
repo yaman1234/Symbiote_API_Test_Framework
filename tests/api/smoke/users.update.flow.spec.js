@@ -19,7 +19,9 @@ const { otpChainTestsSkippedReason } = require('../../../helpers/otpChainSkip');
 const { buildCreateUserPayload, buildUpdateUserPayload, parseUuidList } = require('../../../helpers/createUserPayload');
 
 test.describe('Update org user flow @smoke @users', () => {
-  test('Create → GET → PATCH → GET confirms update', async ({}, testInfo) => {
+  // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
+
+  test('PATCH /orgs/:orgId/users/:orgUserId : updates user and returns persisted changes', async ({}, testInfo) => {
     test.skip(!env.USER_MGMT_OWNER_EMAIL, 'Set USER_MGMT_OWNER_EMAIL (Owner)');
     test.skip(!env.USER_CREATE_BRANCH_ID, 'Set USER_CREATE_BRANCH_ID');
     const password = env.USER_MGMT_OWNER_PASSWORD || env.LOGIN_PASSWORD;

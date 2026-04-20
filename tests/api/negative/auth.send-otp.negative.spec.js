@@ -43,14 +43,20 @@ test.describe('Send OTP @negative', () => {
     }
   }
 
-  test('Missing loginAttemptId → 422', async ({}, testInfo) => {
+  // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
+
+
+  test('POST /auth/send-otp : rejects missing loginAttemptId → 422', async ({}, testInfo) => {
     const { response, body } = await postSendOtp({ method: 'EMAIL' }, testInfo, null);
     expectHttpStatus(response, 422);
     expectJsonContentType(response);
     expectAuthSendOtpValidationErrorBody(body, 'loginAttemptId');
   });
 
-  test('Empty loginAttemptId → 422', async ({}, testInfo) => {
+  // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
+
+
+  test('POST /auth/send-otp : rejects empty loginAttemptId → 422', async ({}, testInfo) => {
     const { response, body } = await postSendOtp(
       { loginAttemptId: '', method: 'EMAIL' },
       testInfo,
@@ -61,7 +67,10 @@ test.describe('Send OTP @negative', () => {
     expectAuthSendOtpValidationErrorBody(body);
   });
 
-  test('SMS not supported → 400', async ({}, testInfo) => {
+  // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
+
+
+  test('POST /auth/send-otp : rejects SMS not supported → 400', async ({}, testInfo) => {
     test.skip(!env.LOGIN_EMAIL || !env.LOGIN_PASSWORD, 'Set LOGIN_EMAIL and LOGIN_PASSWORD in .env');
     const id = await loginAttemptId();
     expect(id).toBeTruthy();
@@ -78,7 +87,10 @@ test.describe('Send OTP @negative', () => {
     });
   });
 
-  test('Invalid loginAttemptId → 400', async ({}, testInfo) => {
+  // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
+
+
+  test('POST /auth/send-otp : rejects invalid loginAttemptId → 400', async ({}, testInfo) => {
     const { response, body } = await postSendOtp(
       { loginAttemptId: '00000000-0000-0000-0000-000000000000', method: 'EMAIL' },
       testInfo,
