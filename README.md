@@ -23,39 +23,38 @@ Playwright-driven API tests against Symbiote QA (JavaScript, no TypeScript). Thi
 
 **Auth — smoke**
 
-- `tests/api/smoke/auth.login.spec.js` — `POST auth/login` (OTP challenge; uppercase email variant).
-- `tests/api/smoke/auth.send-otp.spec.js` — login → `POST auth/send-otp`.
-- `tests/api/smoke/auth.verify-otp.spec.js` — login → send-otp → `POST auth/verify-otp` (`VERIFY_OTP` in `.env`).
-- `tests/api/smoke/auth.refresh.spec.js` — full OTP login → `POST auth/refresh` with JSON `refreshToken`.
-- `tests/api/smoke/auth.forgot-password.spec.js` — `POST auth/forgot-password` (generic success for known and unknown emails).
+- `tests/api/modules/auth/smoke/auth.login.spec.js` — `POST auth/login` (OTP challenge; uppercase email variant).
+- `tests/api/modules/auth/smoke/auth.send-otp.spec.js` — login → `POST auth/send-otp`.
+- `tests/api/modules/auth/smoke/auth.verify-otp.spec.js` — login → send-otp → `POST auth/verify-otp` (`VERIFY_OTP` in `.env`).
+- `tests/api/modules/auth/smoke/auth.refresh.spec.js` — full OTP login → `POST auth/refresh` with JSON `refreshToken`.
 
 **Auth — negative**
 
-- `tests/api/negative/auth.login.negative.spec.js` — 401 / 422; optional padded + uppercase email when `RUN_PADDED_LOGIN_EMAIL_TEST=1`.
-- `tests/api/negative/auth.send-otp.negative.spec.js`
-- `tests/api/negative/auth.verify-otp.negative.spec.js`
-- `tests/api/negative/auth.refresh.negative.spec.js` — missing / malformed / invalid / replayed refresh → `401` / `AUTH_REFRESH_INVALID`.
-- `tests/api/negative/auth.forgot-password.negative.spec.js` — forgot-password validation (`422`).
-- `tests/api/negative/auth.password-action.negative.spec.js` — `POST auth/password-action/validate` (missing token, invalid token).
-- `tests/api/negative/auth.set-password.negative.spec.js` — `POST auth/set-password` (weak password `422`; mismatch `400` when `PASSWORD_ACTION_TOKEN_RAW` is set).
+- `tests/api/modules/auth/negative/auth.login.negative.spec.js` — 401 / 422; optional padded + uppercase email when `RUN_PADDED_LOGIN_EMAIL_TEST=1`.
+- `tests/api/modules/auth/negative/auth.send-otp.negative.spec.js`
+- `tests/api/modules/auth/negative/auth.verify-otp.negative.spec.js`
+- `tests/api/modules/auth/negative/auth.refresh.negative.spec.js` — missing / malformed / invalid / replayed refresh → `401` / `AUTH_REFRESH_INVALID`.
+- `tests/api/modules/auth/negative/auth.forgot-password.negative.spec.js` — forgot-password validation (`422`).
+- `tests/api/modules/auth/negative/auth.password-action.negative.spec.js` — `POST auth/password-action/validate` (missing token, invalid token).
+- `tests/api/modules/auth/negative/auth.set-password.negative.spec.js` — `POST auth/set-password` (weak password `422`; mismatch `400` when `PASSWORD_ACTION_TOKEN_RAW` is set).
 
 **User management (`@users`)**
 
-- `tests/api/smoke/users.list.spec.js` — `GET orgs/:orgId/users` (owner + `page` / `limit`) after **login → send-otp → verify-otp**.
-- `tests/api/smoke/users.get.spec.js` — `GET orgs/:orgId/users/:orgUserId` (owner session, caller `orgUserId` from verify-otp).
-- `tests/api/smoke/users.create.spec.js` — `POST orgs/:orgId/users` (Owner + `USER_CREATE_BRANCH_ID` / optional `USER_CREATE_DEPARTMENT_IDS`).
-- `tests/api/smoke/users.update.flow.spec.js` — create → GET → `PATCH orgs/:orgId/users/:orgUserId` → GET to confirm update; see [`testCases/Orgs_users-patch.md`](testCases/Orgs_users-patch.md).
-- `tests/api/smoke/users.options.spec.js` — `GET orgs/:orgId/users/options?branchId=` (supervisor session + branch id); asserts dropdown fields and `branchRole` in `EMPLOYEE` | `SUPERVISOR`.
+- `tests/api/modules/users/smoke/users.list.spec.js` — `GET orgs/:orgId/users` (owner + `page` / `limit`) after **login → send-otp → verify-otp**.
+- `tests/api/modules/users/smoke/users.get.spec.js` — `GET orgs/:orgId/users/:orgUserId` (owner session, caller `orgUserId` from verify-otp).
+- `tests/api/modules/users/smoke/users.create.spec.js` — `POST orgs/:orgId/users` (Owner + `USER_CREATE_BRANCH_ID` / optional `USER_CREATE_DEPARTMENT_IDS`).
+- `tests/api/modules/users/smoke/users.update.flow.spec.js` — create → GET → `PATCH orgs/:orgId/users/:orgUserId` → GET to confirm update; see [`testCases/Orgs_users-patch.md`](testCases/Orgs_users-patch.md).
+- `tests/api/modules/users/smoke/users.options.spec.js` — `GET orgs/:orgId/users/options?branchId=` (supervisor session + branch id); asserts dropdown fields and `branchRole` in `EMPLOYEE` | `SUPERVISOR`.
 - `tests/api/regression/users.options.access.spec.js` — same route for **Owner** (branch from session or `USER_CREATE_BRANCH_ID`) and **Employee** (own `branchId`); see [`testCases/Orgs_users-options.md`](testCases/Orgs_users-options.md).
-- `tests/api/negative/users.list.negative.spec.js` / `users.options.negative.spec.js` / `users.get.negative.spec.js` — unauthenticated `GET` → `401`.
+- `tests/api/modules/users/negative/users.list.negative.spec.js` / `users.options.negative.spec.js` / `users.get.negative.spec.js` — unauthenticated `GET` → `401`.
 - `tests/api/regression/users.list.visibility.spec.js` — owner vs employee vs supervisor visibility (requires OTP chain + role-specific emails in `.env`).
 
 **Regression matrix**
 
 - `tests/api/regression/qa-auth-matrix.spec.js` — numbered flows (login, send-otp, verify-otp, refresh, optional protected route, Tier 3 member). Row map: [`tests/data/qa-test-matrix.md`](tests/data/qa-test-matrix.md).
-- `tests/api/smoke/auth.password-action.flow.spec.js` — optional validate → set-password → validate-again (consumes token); tagged `@regression`; requires `PASSWORD_ACTION_*` in `.env`. See [`testCases/Auth_password-action-validate.md`](testCases/Auth_password-action-validate.md) / [`testCases/Auth_set-password.md`](testCases/Auth_set-password.md).
+- Password-action flow coverage (validate → set-password → validate-again) remains a regression scenario when that spec is present locally; it requires `PASSWORD_ACTION_*` in `.env`. See [`testCases/Auth_password-action-validate.md`](testCases/Auth_password-action-validate.md) / [`testCases/Auth_set-password.md`](testCases/Auth_set-password.md).
 
-**Smoke folder index:** [`tests/api/smoke/README.md`](tests/api/smoke/README.md) lists spec files per API path.
+**Module folder index:** [`tests/api/modules/README.md`](tests/api/modules/README.md) documents module-first layout and naming.
 
 **Seeded QA accounts:** [`tests/data/qa-seeded-accounts.md`](tests/data/qa-seeded-accounts.md) (human reference) and [`tests/data/seededAccounts.js`](tests/data/seededAccounts.js) (machine-readable dataset for data-driven tests).
 
@@ -102,6 +101,9 @@ Create `.env` from the template (PowerShell: `Copy-Item .env.example .env`) and 
 | `npm run test:smoke-and-negative` | `@smoke` or `@negative` (no `@regression`). |
 | `npm run test:regression` / `npm run test:manager-report` | `@regression` only (matrix + user visibility). |
 | `npm run test:users` | `@users` only (user-management-focused). |
+| `npm run test:module:auth` / `:tasks` / `:users` | Run all specs in a single module folder. |
+| `npm run test:module:auth:smoke` (and tasks/users variants) | Run module smoke specs only. |
+| `npm run test:module:auth:negative` (and tasks/users variants) | Run module negative specs only. |
 | `npm run test:list` | List tests without executing. |
 | `npm run report:open` | Open the last HTML report. |
 | `npm run testcases:generate` | Parse `testCases/*.md` and build/update `Master_TestCases.xlsx` (`TestCases_Master` + `Dashboard`; preserves `Run_Results_Raw`). |
@@ -215,8 +217,18 @@ Smokes use **`helpers/authSession.js`** → `loginWithOtp(client, { email, passw
 |   |-- otpChainSkip.js       # SKIP_OTP_CHAIN_TESTS helper
 |   `-- testData.js
 |-- tests/api/
-|   |-- smoke/
-|   |-- negative/
+|   |-- modules/
+|   |   |-- auth/
+|   |   |   |-- smoke/
+|   |   |   `-- negative/
+|   |   |-- tasks/
+|   |   |   |-- smoke/
+|   |   |   `-- negative/
+|   |   |-- users/
+|   |   |   |-- smoke/
+|   |   |   `-- negative/
+|   |   `-- template/
+|   |       `-- smoke/
 |   `-- regression/
 |-- tests/data/
 |   |-- qa-seeded-accounts.md
@@ -228,7 +240,7 @@ Smokes use **`helpers/authSession.js`** → `loginWithOtp(client, { email, passw
 `-- package.json
 ```
 
-**Naming:** Put files under `smoke/`, `negative/`, or `regression/`; include `@smoke`, `@negative`, or `@regression` in `test.describe` titles for `grep`. Use `@users` for user-management suites when you want `npm run test:users`. Use `@auth` for forgot-password / password-action / set-password specs when you want `npx playwright test --grep @auth`.
+**Naming:** Put specs under `tests/api/modules/<module>/<suite>/` for smoke/negative suites and keep `tests/api/regression/` for cross-module regression flows. Include `@smoke`, `@negative`, or `@regression` in `test.describe` titles for `grep`. Use `@users` for user-management suites when you want `npm run test:users`. Use `@auth` for forgot-password / password-action / set-password specs when you want `npx playwright test --grep @auth`.
 
 ---
 

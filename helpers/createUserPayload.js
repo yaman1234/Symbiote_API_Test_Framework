@@ -10,6 +10,24 @@ function makeUniqueSuffix() {
   return `${Date.now()}${randomDigits(4)}`;
 }
 
+const OWNER_ONLY_CREATE_FIELDS = [
+  'modules',
+  'paymentMethod',
+  'paymentFrequency',
+  'paymentDay',
+  'accountName',
+  'bankName',
+  'bankBranch',
+  'currency',
+  'baseWage',
+  'overtimeRate',
+  'wagePeriod',
+  'attachmentKey',
+  'attachmentName',
+  'attachmentMime',
+  'attachmentSize'
+];
+
 /**
  * Builds dynamic JSON body for POST /orgs/:orgId/users.
  * You can pass only `branchId` and get a unique, valid default payload.
@@ -75,6 +93,18 @@ function buildCreateUserPayload({
 }
 
 /**
+ * Builds a supervisor-safe create payload by removing Owner-only fields.
+ * @param {Parameters<typeof buildCreateUserPayload>[0]} p
+ */
+function buildSupervisorCreateUserPayload(p) {
+  const payload = buildCreateUserPayload(p);
+  for (const key of OWNER_ONLY_CREATE_FIELDS) {
+    delete payload[key];
+  }
+  return payload;
+}
+
+/**
  * PATCH /orgs/:orgId/users/:orgUserId — mirrors the API’s full user shape (aligned with {@link buildCreateUserPayload}).
  * @param {{
  *   branchId: string,
@@ -137,10 +167,28 @@ function buildUpdateUserPayload({
   };
 }
 
+/**
+ * Builds a supervisor-safe PATCH payload by removing Owner-only fields (same cluster as create).
+ * @param {Parameters<typeof buildUpdateUserPayload>[0]} p
+ */
+function buildSupervisorUpdateUserPayload(p) {
+  const payload = buildUpdateUserPayload(p);
+  for (const key of OWNER_ONLY_CREATE_FIELDS) {
+    delete payload[key];
+  }
+  return payload;
+}
+
 /** @param {string} [raw] comma-separated UUIDs */
 function parseUuidList(raw) {
   if (!raw || typeof raw !== 'string') return [];
   return raw.split(',').map((s) => s.trim()).filter(Boolean);
 }
 
-module.exports = { buildCreateUserPayload, buildUpdateUserPayload, parseUuidList };
+module.exports = {
+  buildCreateUserPayload,
+  buildSupervisorCreateUserPayload,
+  buildUpdateUserPayload,
+  buildSupervisorUpdateUserPayload,
+  parseUuidList
+};

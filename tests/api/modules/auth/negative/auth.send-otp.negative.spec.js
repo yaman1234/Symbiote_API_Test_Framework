@@ -1,12 +1,12 @@
 const { test, expect } = require('@playwright/test');
-const { env } = require('../../../config/env');
-const { createApiClient } = require('../../../helpers/apiClient');
-const { expectJsonContentType, expectHttpStatus } = require('../../../helpers/assertions');
+const { env } = require('../../../../../config/env');
+const { createApiClient } = require('../../../../../helpers/apiClient');
+const { expectJsonContentType, expectHttpStatus } = require('../../../../../helpers/assertions');
 const {
   expectAuthSendOtpValidationErrorBody,
   expectAuthSendOtpBadRequestBody
-} = require('../../../helpers/assertions.auth');
-const { publishApiResponse } = require('../../../helpers/apiResponseReport');
+} = require('../../../../../helpers/assertions.auth');
+const { publishApiResponse } = require('../../../../../helpers/apiResponseReport');
 
 test.describe('Send OTP @negative', () => {
   async function loginAttemptId() {

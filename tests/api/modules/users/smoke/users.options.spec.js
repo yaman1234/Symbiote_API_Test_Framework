@@ -19,13 +19,13 @@
  *   This persona is expected to have org + branch context so branchId query is meaningful for QA.
  */
 const { test } = require('@playwright/test');
-const { env } = require('../../../config/env');
-const { createApiClient } = require('../../../helpers/apiClient');
-const { loginWithOtp } = require('../../../helpers/authSession');
-const { expectSuccessStatus, expectJsonContentType } = require('../../../helpers/assertions');
-const { expectOrgUsersOptionsSuccessBody } = require('../../../helpers/assertions.users');
-const { publishApiResponse } = require('../../../helpers/apiResponseReport');
-const { otpChainTestsSkippedReason } = require('../../../helpers/otpChainSkip');
+const { env } = require('../../../../../config/env');
+const { createApiClient } = require('../../../../../helpers/apiClient');
+const { loginWithOtp } = require('../../../../../helpers/authSession');
+const { expectSuccessStatus, expectJsonContentType } = require('../../../../../helpers/assertions');
+const { expectOrgUsersOptionsSuccessBody } = require('../../../../../helpers/assertions.users');
+const { publishApiResponse } = require('../../../../../helpers/apiResponseReport');
+const { otpChainTestsSkippedReason } = require('../../../../../helpers/otpChainSkip');
 
 test.describe('User options (branch dropdown) @smoke @users', () => {
   // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.

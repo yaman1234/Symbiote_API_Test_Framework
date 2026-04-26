@@ -1,15 +1,15 @@
 const { test, expect } = require('@playwright/test');
-const { env } = require('../../../config/env');
-const { createApiClient } = require('../../../helpers/apiClient');
-const { expectSuccessStatus, expectJsonContentType } = require('../../../helpers/assertions');
+const { env } = require('../../../../../config/env');
+const { createApiClient } = require('../../../../../helpers/apiClient');
+const { expectSuccessStatus, expectJsonContentType } = require('../../../../../helpers/assertions');
 const {
   expectAuthLoginOtpSuccessBody,
   expectAuthSendOtpSuccessBody,
   expectAuthVerifyOtpSuccessBody,
   expectAuthRefreshSuccessBody
-} = require('../../../helpers/assertions.auth');
-const { publishApiResponse } = require('../../../helpers/apiResponseReport');
-const { otpChainTestsSkippedReason } = require('../../../helpers/otpChainSkip');
+} = require('../../../../../helpers/assertions.auth');
+const { publishApiResponse } = require('../../../../../helpers/apiResponseReport');
+const { otpChainTestsSkippedReason } = require('../../../../../helpers/otpChainSkip');
 
 test.describe('Refresh token @smoke', () => {
   // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.

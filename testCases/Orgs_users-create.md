@@ -26,7 +26,7 @@ Creates a user under an org + branch. Requires **Bearer** after OTP login.
 
 - **TC_ID:** ORGS-CREATE-001  
 - **Suite:** Smoke  
-- **Spec_File:** `tests/api/smoke/users.create.spec.js`  
+- **Spec_File:** `tests/api/modules/users/smoke/users.create.spec.js`  
 - **Scenario:** Owner creates user (minimal body, branch from env)  
 - **Expected:** HTTP **2xx**, JSON  
 - **Checks:** `expectOrgUserCreateSuccessBody` — `message` contains **User created** (e.g. `User created.` or invitation-sent variant), `data.orgUserId`  
@@ -37,7 +37,7 @@ Creates a user under an org + branch. Requires **Bearer** after OTP login.
 
 - **TC_ID:** ORGS-CREATE-002  
 - **Suite:** Negative  
-- **Spec_File:** `tests/api/negative/users.create.negative.spec.js`  
+- **Spec_File:** `tests/api/modules/users/negative/users.create.negative.spec.js`  
 - **Scenario:** No `Authorization`  
 - **Expected:** HTTP **401**  
 - **Checks:** `expectJsonErrorBody` (Authentication, error code/key)  
@@ -48,7 +48,7 @@ Creates a user under an org + branch. Requires **Bearer** after OTP login.
 
 - **TC_ID:** ORGS-CREATE-003  
 - **Suite:** Negative  
-- **Spec_File:** `tests/api/negative/users.create.negative.spec.js`  
+- **Spec_File:** `tests/api/modules/users/negative/users.create.negative.spec.js`  
 - **Scenario:** Missing `email`  
 - **Expected:** HTTP **422**  
 - **Checks:** `expectAuthValidationErrorBody` — field `email`  
@@ -151,3 +151,36 @@ Creates a user under an org + branch. Requires **Bearer** after OTP login.
 - **Scenario:** **Supervisor** must not set **`modules`**  
 - **Expected:** HTTP **400**, **403**, or **422**  
 - **Checks:** `modules: ['INVENTORY','TASKS']`; `success === false`  
+
+---
+
+## ORGS-CREATE-013
+
+- **TC_ID:** ORGS-CREATE-013  
+- **Suite:** Regression  
+- **Spec_File:** `tests/api/regression/users.profile.validation.spec.js`  
+- **Scenario:** Reject create when mandatory `fullName` is missing  
+- **Expected:** HTTP **400** or **422**  
+- **Checks:** Error envelope shape with `success=false`, `statusCode`, `error.code`, `error.key`  
+
+---
+
+## ORGS-CREATE-014
+
+- **TC_ID:** ORGS-CREATE-014  
+- **Suite:** Regression  
+- **Spec_File:** `tests/api/regression/users.profile.validation.spec.js`  
+- **Scenario:** Reject create with forbidden `branchRole = OWNER`  
+- **Expected:** HTTP **400**, **403**, or **422**  
+- **Checks:** Error envelope shape with `success=false`, `statusCode`, `error.code`, `error.key`  
+
+---
+
+## ORGS-CREATE-015
+
+- **TC_ID:** ORGS-CREATE-015  
+- **Suite:** Regression  
+- **Spec_File:** `tests/api/regression/users.profile.validation.spec.js`  
+- **Scenario:** Reject `supervisorOrgUserId` when target user is EMPLOYEE role (not Supervisor/Owner)  
+- **Expected:** HTTP **400**, **403**, or **422**  
+- **Checks:** Error envelope shape with `success=false`, `statusCode`, `error.code`, `error.key`  

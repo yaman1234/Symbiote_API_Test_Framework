@@ -6,18 +6,49 @@ const { test, expect } = require('@playwright/test');
 const { env } = require('../../../config/env');
 const { createApiClient } = require('../../../helpers/apiClient');
 const { loginWithOtp } = require('../../../helpers/authSession');
-const { buildCreateUserPayload, parseUuidList } = require('../../../helpers/createUserPayload');
-const { expectSuccessStatus, expectJsonContentType } = require('../../../helpers/assertions');
-const { expectOrgUserCreateSuccessBody } = require('../../../helpers/assertions.users');
+const {
+  buildCreateUserPayload,
+  buildSupervisorCreateUserPayload,
+  buildUpdateUserPayload,
+  buildSupervisorUpdateUserPayload,
+  parseUuidList
+} = require('../../../helpers/createUserPayload');
+const { getSeededAccountByKey } = require('../../../helpers/testData');
+const {
+  expectSuccessStatus,
+  expectJsonSuccessBody,
+  expectJsonErrorBody,
+  expectJsonContentType
+} = require('../../../helpers/assertions');
+const { expectOrgUserCreateSuccessBody, expectOrgUserPatchSuccessBody } = require('../../../helpers/assertions.users');
 const { publishApiResponse } = require('../../../helpers/apiResponseReport');
-const { otpChainTestsSkippedReason } = require('../../../helpers/otpChainSkip');
 
-const FAKE_UUID = '00000000-0000-0000-0000-000000000099';
+// Tests for create user API:
+// Test 1: Owner can create user in own branch
+// Test 2: Supervisor can create user in own branch
+// Test 3: Employee cannot create user
+// Test 4: Mandatory fields enforced for Create user API
+// Test 5: Supervisor cannot create user in another branch
+// Test 6: Supervisor cannot create user with branchRole SUPERVISOR
+// Test 7: Duplicate membership (same email) in the same organization is not allowed
+// Test 8: Invalid department id rejected
+// Test 9: Invalid supervisorOrgUserId rejected
+// Test 10: Supervisor cannot set payroll fields
 
-function skipOtpChain() {
-  const r = otpChainTestsSkippedReason();
-  test.skip(!!r, r || '');
-}
+// Tests for Update user API:
+// Test 11: Owner can update user in own branch
+// Test 12: Supervisor can update user in own branch
+// Test 13: Employee cannot update user
+// Test 14: Mandatory fields enforced for Update user API
+// Test 15: Supervisor cannot update user in another branch
+// Test 16: Supervisor cannot update user with branchRole SUPERVISOR
+// Test 17: Duplicate membership (same email) in the same organization is not allowed
+// Test 18: Invalid department id rejected
+// Test 19: Invalid supervisorOrgUserId rejected
+// Test 20: Supervisor cannot set payroll fields
+
+
+
 
 async function postCreate(client, session, payload, testInfo, urlHint = 'orgs/users-create-rules') {
   const path = `orgs/${session.orgId}/users`;
@@ -38,331 +69,674 @@ async function postCreate(client, session, payload, testInfo, urlHint = 'orgs/us
   return { res, body, path };
 }
 
-/** @param {import('@playwright/test').APIResponse} res */
-function expectNonSuccess(res) {
-  expect(res.ok(), `Expected failure status, got HTTP ${res.status()}`).toBeFalsy();
+async function postPatch(client, session, orgUserId, payload, testInfo, urlHint = 'orgs/users-patch-rules') {
+  const path = `orgs/${session.orgId}/users/${orgUserId}`;
+  const res = await client.patch(path, {
+    headers: { Authorization: `Bearer ${session.accessToken}` },
+    data: payload
+  });
+  const body = await res.json();
+  await publishApiResponse(testInfo, {
+    urlHint,
+    response: res,
+    loginEmail: session.loginEmail,
+    status: res.status(),
+    statusText: res.statusText(),
+    body,
+    requestPayload: { path, body: payload }
+  });
+  return { res, body, path };
 }
 
-test.describe('Create user rules @regression @users', () => {
-  // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
+function expectSupervisorForbiddenUpdate(res, body) {
+  expect(res.ok(), `Expected forbidden update, got HTTP ${res.status()}`).toBeFalsy();
+  expectJsonContentType(res);
+  expect(body && typeof body === 'object', 'error body must be object').toBeTruthy();
+  expect(body.success).toBe(false);
+  expect([400, 403].includes(body.statusCode), `expected 400/403, got ${body.statusCode}`).toBeTruthy();
+  expect(typeof body.message).toBe('string');
+  expect(body.error && typeof body.error === 'object', 'error payload').toBeTruthy();
+  expect(typeof body.error.code).toBe('string');
+  expect(body.error.code.length > 0).toBeTruthy();
+}
 
-  test('POST /orgs/:orgId/users : rejects employee cannot create users', async ({}, testInfo) => {
-    test.skip(!env.USER_MGMT_EMPLOYEE_EMAIL, 'Set USER_MGMT_EMPLOYEE_EMAIL');
-    test.skip(!env.USER_CREATE_BRANCH_ID, 'Set USER_CREATE_BRANCH_ID');
-    const password = env.USER_MGMT_EMPLOYEE_PASSWORD || env.LOGIN_PASSWORD;
-    test.skip(!password, 'Set LOGIN_PASSWORD');
-    skipOtpChain();
+async function createSupervisorTargetUser(client, session, testInfo, emailPrefix) {
+  const createPayload = buildSupervisorCreateUserPayload({
+    branchId: session.branchId,
+    email: `${emailPrefix}.${Date.now()}@demo.com`,
+    departmentIds: parseUuidList(env.USER_CREATE_DEPARTMENT_IDS),
+    headDepartmentIds: []
+  });
+  const createResult = await postCreate(
+    client,
+    session,
+    createPayload,
+    testInfo,
+    'orgs/users-update-rules-create-supervisor-target'
+  );
+  expectSuccessStatus(createResult.res, createResult.body);
+  expectJsonContentType(createResult.res);
+  expectOrgUserCreateSuccessBody(createResult.body);
+  const orgUserId = createResult.body.data.orgUserId;
+  expect(typeof orgUserId === 'string' && orgUserId.length > 0, 'created orgUserId').toBeTruthy();
+  return orgUserId;
+}
+
+function buildMinimalAllowedSupervisorPatchPayload(session) {
+  return {
+    branchId: session.branchId,
+    fullName: `supervisor.update.${Date.now()}`,
+    departmentIds: parseUuidList(env.USER_CREATE_DEPARTMENT_IDS),
+    headDepartmentIds: []
+  };
+}
+
+test.describe('Create user rules : ', () => {
+
+  
+// Test 1: Owner can create user in own branch
+test('allows owner to create user in own branch', async ({}, testInfo) => {
+  
+  const owner = getSeededAccountByKey('t3_owner');
+  test.skip(!owner, 'Set owner from seeded accounts key t1_owner');
+  const client = await createApiClient();
+  try {
+    const session = await loginWithOtp(client, {
+      email: owner.email,
+      password: owner.password,
+      otp: env.VERIFY_OTP
+    }); 
+    test.skip(!session.ok, session.ok ? '' : `OTP failed at ${session.step}`);
+    const payload = buildCreateUserPayload({
+      branchId: session.branchId,
+      email: `owner.create.${Date.now()}@demo.com`,
+      departmentIds: parseUuidList(env.USER_CREATE_DEPARTMENT_IDS),
+      headDepartmentIds: []
+    });
+    const { res, body } = await postCreate(client, session, payload, testInfo, 'orgs/users-create-owner');
+    expectSuccessStatus(res, body);
+    expectJsonSuccessBody(body,{
+      success: true,
+      statusCode: 200,
+      message: 'User created successfully. Invitation email sent.',
+      nonEmptyPaths: ['data.orgUserId']
+    });
+  } finally {
+    await client.dispose();
+  }
+});
+  
+  // Test 2: Supervisor can create user in own branch
+test('allows supervisor to create user in own branch', async ({}, testInfo) => {
+  const supervisor = getSeededAccountByKey('t3_supervisor');
+  test.skip(!supervisor, 'Set supervisor from seeded accounts key t3_supervisor');
+  const client = await createApiClient();
+  try {
+    const session = await loginWithOtp(client, {
+      email: supervisor.email,
+      password: supervisor.password,
+      otp: env.VERIFY_OTP 
+    });
+    test.skip(!session.ok, session.ok ? '' : `OTP failed at ${session.step}`);
+    test.skip(!session.branchId, 'Supervisor session must include branch.id');
+    const payload = buildSupervisorCreateUserPayload({
+      branchId: session.branchId,
+      email: `supervisor.create.${Date.now()}@demo.com`,
+      departmentIds: parseUuidList(env.USER_CREATE_DEPARTMENT_IDS),
+      headDepartmentIds: []
+    });
+    const { res, body } = await postCreate(client, session, payload, testInfo, 'orgs/users-create-supervisor');
+    expectSuccessStatus(res, body);
+    expectJsonSuccessBody(body,{
+      success: true,
+      statusCode: 200,
+      message: 'User created successfully. Invitation email sent.',
+      nonEmptyPaths: ['data.orgUserId']
+    });
+  } finally {
+    await client.dispose();
+  }
+});
+  
+  
+  // Test 3: Employee cannot create user
+  test('rejects employee cannot create users', async ({}, testInfo) => {
+    const employee = getSeededAccountByKey('t3_emp1');
+    test.skip(!employee, 'Set employee from seeded accounts key t3_emp1');
 
     const client = await createApiClient();
     try {
       const session = await loginWithOtp(client, {
-        email: env.USER_MGMT_EMPLOYEE_EMAIL,
-        password,
+        email: employee.email,
+        password: employee.password,
         otp: env.VERIFY_OTP
       });
       test.skip(!session.ok, session.ok ? '' : `OTP failed at ${session.step}`);
+      test.skip(!session.branchId, 'Employee session must include branch.id');
 
       const payload = buildCreateUserPayload({
-        branchId: env.USER_CREATE_BRANCH_ID,
-        email: `emp.forbid.${Date.now()}@demo.com`,
+        branchId: session.branchId,
+        email: `employee.create.${Date.now()}@demo.com`,
         departmentIds: parseUuidList(env.USER_CREATE_DEPARTMENT_IDS),
         headDepartmentIds: []
       });
+
       const { res, body } = await postCreate(client, session, payload, testInfo, 'orgs/users-create-employee');
-      expectNonSuccess(res);
-      expect([401, 403].includes(res.status()), `Expected 401 or 403, got ${res.status()}`).toBeTruthy();
-      expect(body && body.success === false).toBeTruthy();
+      expect(res.ok()).toBeFalsy();
+      expectJsonErrorBody(body, {
+        success: false,
+        statusCode: 403,
+        message: 'Not authorized to create users.',
+      });
     } finally {
       await client.dispose();
     }
   });
 
-  // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
+
+// Test 4: Mandatory fields enforced for Create user API
+test('enforces mandatory fields for create user API', async ({}, testInfo) => {
+  const owner = getSeededAccountByKey('t3_owner');
+  test.skip(!owner, 'Set owner from seeded accounts key t3_owner');
+  const client = await createApiClient();
+  try {
+    const session = await loginWithOtp(client, {
+      email: owner.email,
+      password: owner.password,
+      otp: env.VERIFY_OTP
+    });
+    test.skip(!session.ok, session.ok ? '' : `OTP failed at ${session.step}`);
+    test.skip(!session.branchId, 'Owner session must include branch.id');
+    const payload = buildCreateUserPayload({
+      branchId: session.branchId,
+      email: `owner.create.${Date.now()}@demo.com`,
+      departmentIds: parseUuidList(env.USER_CREATE_DEPARTMENT_IDS),
+      headDepartmentIds: []
+    });
+    delete payload.email;
+    delete payload.fullName;
+    delete payload.phoneNumber;
+    delete payload.dateOfBirth;
+    delete payload.gender;
+    delete payload.addressLine1;
+    delete payload.addressLine2;
+    delete payload.town;
+    delete payload.city;
+    delete payload.country;
+    const { res, body } = await postCreate(client, session, payload, testInfo, 'orgs/users-create-owner');
+    expect(res.ok()).toBeFalsy();
+    expectJsonErrorBody(body, {
+      success: false,
+      statusCode: 422,
+      message: 'Validation failed.',
+  
+    });
+  } finally {
+    await client.dispose();
+  }
+});
 
 
-  test('POST /orgs/:orgId/users : allows supervisor to create EMPLOYEE in own branch', async ({}, testInfo) => {
-    test.skip(!env.USER_MGMT_SUPERVISOR_EMAIL, 'Set USER_MGMT_SUPERVISOR_EMAIL');
-    const password = env.USER_MGMT_SUPERVISOR_PASSWORD || env.LOGIN_PASSWORD;
-    test.skip(!password, 'Set LOGIN_PASSWORD');
-    skipOtpChain();
-
-    const client = await createApiClient();
-    try {
-      const session = await loginWithOtp(client, {
-        email: env.USER_MGMT_SUPERVISOR_EMAIL,
-        password,
-        otp: env.VERIFY_OTP
-      });
-      test.skip(!session.ok, session.ok ? '' : `OTP failed at ${session.step}`);
-      test.skip(!session.branchId, 'Supervisor session must include branch.id');
-
-      const payload = buildCreateUserPayload({
-        branchId: session.branchId,
-        email: `sup.create.${Date.now()}@demo.com`,
+// Test 5: Supervisor cannot create user in another branch
+test('rejects supervisor cannot create users in another branch', async ({}, testInfo) => {
+  const supervisor = getSeededAccountByKey('t3_supervisor');
+  test.skip(!supervisor, 'Set supervisor from seeded accounts key t3_supervisor');
+  const client = await createApiClient();
+  try {
+    const session = await loginWithOtp(client, {
+      email: supervisor.email,
+      password: supervisor.password,
+      otp: env.VERIFY_OTP
+    });
+    test.skip(!session.ok, session.ok ? '' : `OTP failed at ${session.step}`);
+    test.skip(!session.branchId, 'Supervisor session must include branch.id');
+      const payload = buildCreateUserPayload({ 
+        // T3 Branch 2, supervisor doesnot have access to this branch   
+        branchId: '5ed93622-5980-457f-9a51-67515189d12d',
+        email: `supervisor.create.${Date.now()}@demo.com`,
         departmentIds: parseUuidList(env.USER_CREATE_DEPARTMENT_IDS),
         headDepartmentIds: []
       });
-      const { res, body } = await postCreate(client, session, payload, testInfo, 'orgs/users-create-supervisor-ok');
-      expectSuccessStatus(res, body);
-      expectJsonContentType(res);
-      expectOrgUserCreateSuccessBody(body);
+
+      const { res, body } = await postCreate(client, session, payload, testInfo, 'orgs/users-create-supervisor');
+      expect(res.ok()).toBeFalsy();
+      expectJsonErrorBody(body, {
+        success: false,
+        statusCode: 403,
+        message: 'Supervisors can only create users in their own branch.',
+      });
     } finally {
       await client.dispose();
     }
   });
 
-  // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
 
 
-  test('POST /orgs/:orgId/users : rejects supervisor cannot create in another branch', async ({}, testInfo) => {
-    test.skip(!env.USER_MGMT_SUPERVISOR_EMAIL, 'Set USER_MGMT_SUPERVISOR_EMAIL');
-    test.skip(!env.USER_CREATE_WRONG_BRANCH_ID, 'Set USER_CREATE_WRONG_BRANCH_ID (branch ≠ supervisor branch)');
-    const password = env.USER_MGMT_SUPERVISOR_PASSWORD || env.LOGIN_PASSWORD;
-    test.skip(!password, 'Set LOGIN_PASSWORD');
-    skipOtpChain();
-
-    const client = await createApiClient();
-    try {
-      const session = await loginWithOtp(client, {
-        email: env.USER_MGMT_SUPERVISOR_EMAIL,
-        password,
-        otp: env.VERIFY_OTP
-      });
-      test.skip(!session.ok, session.ok ? '' : `OTP failed at ${session.step}`);
-      test.skip(
-        session.branchId && session.branchId === env.USER_CREATE_WRONG_BRANCH_ID,
-        'USER_CREATE_WRONG_BRANCH_ID must differ from supervisor branchId'
-      );
-
-      const payload = buildCreateUserPayload({
-        branchId: env.USER_CREATE_WRONG_BRANCH_ID,
-        email: `sup.wrongbranch.${Date.now()}@demo.com`,
-        departmentIds: parseUuidList(env.USER_CREATE_DEPARTMENT_IDS),
-        headDepartmentIds: []
-      });
-      const { res, body } = await postCreate(client, session, payload, testInfo, 'orgs/users-create-wrong-branch');
-      expectNonSuccess(res);
-      expect([400, 403, 422].includes(res.status())).toBeTruthy();
-      expect(body && body.success === false).toBeTruthy();
-    } finally {
-      await client.dispose();
-    }
-  });
-
-  // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
-
-
-  test('POST /orgs/:orgId/users : rejects supervisor cannot create with branchRole SUPERVISOR', async ({}, testInfo) => {
-    test.skip(!env.USER_MGMT_SUPERVISOR_EMAIL, 'Set USER_MGMT_SUPERVISOR_EMAIL');
-    const password = env.USER_MGMT_SUPERVISOR_PASSWORD || env.LOGIN_PASSWORD;
-    test.skip(!password, 'Set LOGIN_PASSWORD');
-    skipOtpChain();
-
-    const client = await createApiClient();
-    try {
-      const session = await loginWithOtp(client, {
-        email: env.USER_MGMT_SUPERVISOR_EMAIL,
-        password,
-        otp: env.VERIFY_OTP
-      });
-      test.skip(!session.ok, session.ok ? '' : `OTP failed at ${session.step}`);
-      test.skip(!session.branchId, 'Supervisor session must include branch.id');
-
-      const payload = buildCreateUserPayload({
+// Test 6: Supervisor cannot create user with branchRole SUPERVISOR
+test('rejects supervisor cannot create users with branchRole SUPERVISOR', async ({}, testInfo) => {
+  const supervisor = getSeededAccountByKey('t3_supervisor');
+  test.skip(!supervisor, 'Set supervisor from seeded accounts key t3_supervisor');
+  const client = await createApiClient();
+  try {
+    const session = await loginWithOtp(client, {
+      email: supervisor.email,
+      password: supervisor.password,
+      otp: env.VERIFY_OTP
+    });
+    test.skip(!session.ok, session.ok ? '' : `OTP failed at ${session.step}`);
+    test.skip(!session.branchId, 'Supervisor session must include branch.id');
+      const payload = buildSupervisorCreateUserPayload({
         branchId: session.branchId,
-        email: `sup.role.${Date.now()}@demo.com`,
+        email: `supervisor.create.${Date.now()}@demo.com`,
         departmentIds: parseUuidList(env.USER_CREATE_DEPARTMENT_IDS),
         headDepartmentIds: [],
         overrides: { branchRole: 'SUPERVISOR' }
       });
-      const { res, body } = await postCreate(client, session, payload, testInfo, 'orgs/users-create-sup-supervisor-role');
-      expectNonSuccess(res);
-      expect([400, 403, 422].includes(res.status())).toBeTruthy();
-      expect(body && body.success === false).toBeTruthy();
-    } finally {
-      await client.dispose();
-    }
+      const { res, body } = await postCreate(client, session, payload, testInfo, 'orgs/users-create-supervisor');
+      expect(res.ok()).toBeFalsy();
+      expectJsonErrorBody(body, { success: false, statusCode: 403, 
+        message: 'Supervisors can only create employees.' });
+    } finally { await client.dispose(); }
   });
 
-  // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
+
+// Test 7: Duplicate membership (same email) in the same organization is not allowed
+test('rejects duplicate membership (same email) in the same organization', async ({}, testInfo) => {
+  const owner = getSeededAccountByKey('t3_owner');
+  test.skip(!owner, 'Set owner from seeded accounts key t3_owner');
+  const client = await createApiClient();
+  try {
+    const session = await loginWithOtp(client, {
+      email: owner.email,
+      password: owner.password, 
+      otp: env.VERIFY_OTP
+    });
+    test.skip(!session.ok, session.ok ? '' : `OTP failed at ${session.step}`);
+    test.skip(!session.branchId, 'Owner session must include branch.id');
+    const payload = buildCreateUserPayload({
+      branchId: session.branchId,
+      email: owner.email,
+      departmentIds: parseUuidList(env.USER_CREATE_DEPARTMENT_IDS),
+      headDepartmentIds: []
+    });
+    const { res, body } = await postCreate(client, session, payload, testInfo, 'orgs/users-create-owner');
+    expect(res.ok()).toBeFalsy();
+    expectJsonErrorBody(body, {
+      success: false,
+      statusCode: 400,
+      message: 'User already exists in this organization.',
+
+    });
+  } finally {
+    await client.dispose();
+  }
+}); 
 
 
-  test('POST /orgs/:orgId/users : rejects duplicate membership — same email twice in same org', async ({}, testInfo) => {
-    test.skip(!env.USER_MGMT_OWNER_EMAIL, 'Set USER_MGMT_OWNER_EMAIL');
-    test.skip(!env.USER_CREATE_BRANCH_ID, 'Set USER_CREATE_BRANCH_ID');
-    const password = env.USER_MGMT_OWNER_PASSWORD || env.LOGIN_PASSWORD;
-    test.skip(!password, 'Set LOGIN_PASSWORD');
-    skipOtpChain();
 
+// Test 8: Invalid department id rejected
+test('rejects invalid department id', async ({}, testInfo) => {
+  const owner = getSeededAccountByKey('t3_owner');
+  test.skip(!owner, 'Set owner from seeded accounts key t3_owner');
+  const client = await createApiClient();
+  try {
+    const session = await loginWithOtp(client, {
+      email: owner.email,
+      password: owner.password, 
+      otp: env.VERIFY_OTP
+    });
+    test.skip(!session.ok, session.ok ? '' : `OTP failed at ${session.step}`);
+    test.skip(!session.branchId, 'Owner session must include branch.id');
+    const payload = buildCreateUserPayload({
+      branchId: session.branchId,
+      email: `owner.create.${Date.now()}@demo.com`,
+      // This department id doesnot exist in the Branch for T3
+      departmentIds: ['1da3d633-973b-45ec-8bea-fed57eef9f12'],
+      headDepartmentIds: []
+    });
+   
+    const { res, body } = await postCreate(client, session, payload, testInfo, 'orgs/users-create-owner');
+    expect(res.ok()).toBeFalsy();
+    expectJsonErrorBody(body, {
+      success: false,
+      statusCode: 400,
+      message: 'Invalid departmentIds for this branch.'
+    });
+  } finally {
+    await client.dispose();
+  }
+});
+
+
+// Test 9: Invalid supervisorOrgUserId rejected
+test('rejects invalid supervisorOrgUserId', async ({}, testInfo) => {
+  const owner = getSeededAccountByKey('t3_owner');
+  test.skip(!owner, 'Set owner from seeded accounts key t3_owner');
+  const client = await createApiClient();
+  try {
+    const session = await loginWithOtp(client, {
+      email: owner.email,
+      password: owner.password, 
+      otp: env.VERIFY_OTP
+    });
+    test.skip(!session.ok, session.ok ? '' : `OTP failed at ${session.step}`);
+    test.skip(!session.branchId, 'Owner session must include branch.id');
+    const payload = buildCreateUserPayload({
+      branchId: session.branchId,
+      email: `owner.create.${Date.now()}@demo.com`,
+      departmentIds: parseUuidList(env.USER_CREATE_DEPARTMENT_IDS),
+      headDepartmentIds: [],
+      overrides: { supervisorOrgUserId: '00000000-0000-0000-0000-000000000000' }
+    });
+    const { res, body } = await postCreate(client, session, payload, testInfo, 'orgs/users-create-owner');
+    expect(res.ok()).toBeFalsy();
+    expectJsonErrorBody(body, {
+      success: false,
+      statusCode: 400,
+      message: 'Invalid supervisorOrgUserId for this branch.'
+    });
+  } finally {
+    await client.dispose();
+  }
+});
+
+
+// Test 10: Supervisor cannot set payroll fields
+test('rejects supervisor cannot set payroll fields', async ({}, testInfo) => {
+  const supervisor = getSeededAccountByKey('t3_supervisor');
+  test.skip(!supervisor, 'Set supervisor from seeded accounts key t3_supervisor');
+  const client = await createApiClient();
+  try {
+    const session = await loginWithOtp(client, {
+      email: supervisor.email,
+      password: supervisor.password, 
+      otp: env.VERIFY_OTP
+    });
+    test.skip(!session.ok, session.ok ? '' : `OTP failed at ${session.step}`);
+    test.skip(!session.branchId, 'Supervisor session must include branch.id');
+    const payload = buildCreateUserPayload({
+      branchId: session.branchId,
+      email: `supervisor.create.${Date.now()}@demo.com`,
+      departmentIds: parseUuidList(env.USER_CREATE_DEPARTMENT_IDS),
+      headDepartmentIds: [],
+    });
+    const { res, body } = await postCreate(client, session, payload, testInfo, 'orgs/users-create-supervisor');
+    expect(res.ok()).toBeFalsy();
+    expectJsonErrorBody(body, {
+      success: false,
+      statusCode: 403,
+      message: 'Not authorized to manage payroll/permissions.'
+    });
+  } finally {
+    await client.dispose();
+  }
+});
+
+});
+
+test.describe('Update user rules : ', () => {
+
+  // Test 11: Owner can update user in own branch
+  test('allows owner to update user in own branch', async ({}, testInfo) => {
+    const owner = getSeededAccountByKey('t3_owner');
+    test.skip(!owner, 'Set owner from seeded accounts key t3_owner');
     const client = await createApiClient();
     try {
       const session = await loginWithOtp(client, {
-        email: env.USER_MGMT_OWNER_EMAIL,
-        password,
+        email: owner.email,
+        password: owner.password, 
         otp: env.VERIFY_OTP
       });
       test.skip(!session.ok, session.ok ? '' : `OTP failed at ${session.step}`);
-
-      const dupEmail = `dup.membership.${Date.now()}@demo.com`;
-      const departmentIds = parseUuidList(env.USER_CREATE_DEPARTMENT_IDS);
-      const base = {
-        branchId: env.USER_CREATE_BRANCH_ID,
-        email: dupEmail,
-        departmentIds,
-        headDepartmentIds: []
-      };
-      const payload1 = buildCreateUserPayload(base);
-      const r1 = await postCreate(client, session, payload1, testInfo, 'orgs/users-create-dup-1');
-      expectSuccessStatus(r1.res, r1.body);
-      expectOrgUserCreateSuccessBody(r1.body);
-
-      const payload2 = buildCreateUserPayload(base);
-      const r2 = await postCreate(client, session, payload2, testInfo, 'orgs/users-create-dup-2');
-      expectNonSuccess(r2.res);
-      expect([400, 409, 422].includes(r2.res.status())).toBeTruthy();
-      expect(r2.body && r2.body.success === false).toBeTruthy();
-    } finally {
-      await client.dispose();
-    }
-  });
-
-  // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
-
-
-  test('POST /orgs/:orgId/users : rejects departments must belong to org/branch — invalid department id rejected', async ({}, testInfo) => {
-    test.skip(!env.USER_MGMT_OWNER_EMAIL, 'Set USER_MGMT_OWNER_EMAIL');
-    test.skip(!env.USER_CREATE_BRANCH_ID, 'Set USER_CREATE_BRANCH_ID');
-    const password = env.USER_MGMT_OWNER_PASSWORD || env.LOGIN_PASSWORD;
-    test.skip(!password, 'Set LOGIN_PASSWORD');
-    skipOtpChain();
-
-    const client = await createApiClient();
-    try {
-      const session = await loginWithOtp(client, {
-        email: env.USER_MGMT_OWNER_EMAIL,
-        password,
-        otp: env.VERIFY_OTP
-      });
-      test.skip(!session.ok, session.ok ? '' : `OTP failed at ${session.step}`);
-
-      const payload = buildCreateUserPayload({
-        branchId: env.USER_CREATE_BRANCH_ID,
-        email: `bad.dept.${Date.now()}@demo.com`,
-        departmentIds: [FAKE_UUID],
-        headDepartmentIds: []
-      });
-      const { res, body } = await postCreate(client, session, payload, testInfo, 'orgs/users-create-bad-dept');
-      expectNonSuccess(res);
-      expect([400, 422].includes(res.status())).toBeTruthy();
-      expect(body && body.success === false).toBeTruthy();
-    } finally {
-      await client.dispose();
-    }
-  });
-
-  // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
-
-
-  test('POST /orgs/:orgId/users : rejects invalid supervisorOrgUserId', async ({}, testInfo) => {
-    test.skip(!env.USER_MGMT_OWNER_EMAIL, 'Set USER_MGMT_OWNER_EMAIL');
-    test.skip(!env.USER_CREATE_BRANCH_ID, 'Set USER_CREATE_BRANCH_ID');
-    const password = env.USER_MGMT_OWNER_PASSWORD || env.LOGIN_PASSWORD;
-    test.skip(!password, 'Set LOGIN_PASSWORD');
-    skipOtpChain();
-
-    const client = await createApiClient();
-    try {
-      const session = await loginWithOtp(client, {
-        email: env.USER_MGMT_OWNER_EMAIL,
-        password,
-        otp: env.VERIFY_OTP
-      });
-      test.skip(!session.ok, session.ok ? '' : `OTP failed at ${session.step}`);
-
-      const payload = buildCreateUserPayload({
-        branchId: env.USER_CREATE_BRANCH_ID,
-        email: `bad.supervisor.${Date.now()}@demo.com`,
-        departmentIds: parseUuidList(env.USER_CREATE_DEPARTMENT_IDS),
-        headDepartmentIds: [],
-        overrides: { supervisorOrgUserId: FAKE_UUID }
-      });
-      const { res, body } = await postCreate(client, session, payload, testInfo, 'orgs/users-create-bad-supervisor');
-      expectNonSuccess(res);
-      expect([400, 422].includes(res.status())).toBeTruthy();
-      expect(body && body.success === false).toBeTruthy();
-    } finally {
-      await client.dispose();
-    }
-  });
-
-  // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
-
-
-  test('POST /orgs/:orgId/users : rejects supervisor cannot set payroll fields', async ({}, testInfo) => {
-    test.skip(!env.USER_MGMT_SUPERVISOR_EMAIL, 'Set USER_MGMT_SUPERVISOR_EMAIL');
-    const password = env.USER_MGMT_SUPERVISOR_PASSWORD || env.LOGIN_PASSWORD;
-    test.skip(!password, 'Set LOGIN_PASSWORD');
-    skipOtpChain();
-
-    const client = await createApiClient();
-    try {
-      const session = await loginWithOtp(client, {
-        email: env.USER_MGMT_SUPERVISOR_EMAIL,
-        password,
-        otp: env.VERIFY_OTP
-      });
-      test.skip(!session.ok, session.ok ? '' : `OTP failed at ${session.step}`);
-      test.skip(!session.branchId, 'Supervisor session must include branch.id');
-
-      const payload = buildCreateUserPayload({
+      test.skip(!session.branchId, 'Owner session must include branch.id');
+      const createEmail = `owner.patch.target.${Date.now()}@demo.com`;
+      const createPayload = buildCreateUserPayload({
         branchId: session.branchId,
-        email: `sup.payroll.${Date.now()}@demo.com`,
+        email: createEmail,
+        departmentIds: parseUuidList(env.USER_CREATE_DEPARTMENT_IDS),
+        headDepartmentIds: []
+      });
+      const createResult = await postCreate(client, session, createPayload, testInfo, 'orgs/users-update-rules-create-owner');
+      expectSuccessStatus(createResult.res, createResult.body);
+      expectJsonContentType(createResult.res);
+      expectOrgUserCreateSuccessBody(createResult.body);
+      const orgUserId = createResult.body.data.orgUserId;
+      expect(typeof orgUserId === 'string' && orgUserId.length > 0, 'created orgUserId').toBeTruthy();
+
+      const patchPayload = buildUpdateUserPayload({
+        branchId: session.branchId,
+        fullName: `owner.update.${Date.now()}`,
         departmentIds: parseUuidList(env.USER_CREATE_DEPARTMENT_IDS),
         headDepartmentIds: [],
         overrides: {
-          paymentMethod: 'BANK_TRANSFER',
-          baseWage: '2200.00'
+          status: 'INACTIVE', 
+          modules: ['TASKS'],
+          paymentMethod: 'CASH'
+          
         }
       });
-      const { res, body } = await postCreate(client, session, payload, testInfo, 'orgs/users-create-sup-payroll');
-      expectNonSuccess(res);
-      expect([400, 403, 422].includes(res.status())).toBeTruthy();
-      expect(body && body.success === false).toBeTruthy();
+      const patchResult = await postPatch(client, session, orgUserId, patchPayload, testInfo, 'orgs/users-update-owner');
+      expectSuccessStatus(patchResult.res, patchResult.body);
+      expectJsonContentType(patchResult.res);
+      expectOrgUserPatchSuccessBody(patchResult.body);
     } finally {
       await client.dispose();
     }
   });
 
-  // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
 
 
-  test('POST /orgs/:orgId/users : rejects supervisor cannot set modules', async ({}, testInfo) => {
-    test.skip(!env.USER_MGMT_SUPERVISOR_EMAIL, 'Set USER_MGMT_SUPERVISOR_EMAIL');
-    const password = env.USER_MGMT_SUPERVISOR_PASSWORD || env.LOGIN_PASSWORD;
-    test.skip(!password, 'Set LOGIN_PASSWORD');
-    skipOtpChain();
 
+  // Test 12: Supervisor can update user in own branch
+  test('allows supervisor to update user in own branch', async ({}, testInfo) => {
+    const supervisor = getSeededAccountByKey('t3_supervisor');
+    test.skip(!supervisor, 'Set supervisor from seeded accounts key t3_supervisor');
     const client = await createApiClient();
     try {
       const session = await loginWithOtp(client, {
-        email: env.USER_MGMT_SUPERVISOR_EMAIL,
-        password,
+        email: supervisor.email,
+        password: supervisor.password, 
         otp: env.VERIFY_OTP
       });
       test.skip(!session.ok, session.ok ? '' : `OTP failed at ${session.step}`);
       test.skip(!session.branchId, 'Supervisor session must include branch.id');
-
-      const payload = buildCreateUserPayload({
+      const createEmail = `supervisor.patch.target.${Date.now()}@demo.com`;
+      const createPayload = buildSupervisorCreateUserPayload({
         branchId: session.branchId,
-        email: `sup.modules.${Date.now()}@demo.com`,
+        email: createEmail,
+        departmentIds: parseUuidList(env.USER_CREATE_DEPARTMENT_IDS),
+        headDepartmentIds: []
+      }); 
+      const createResult = await postCreate(client, session, createPayload, testInfo, 'orgs/users-update-rules-create-supervisor');
+      expectSuccessStatus(createResult.res, createResult.body);
+      expectJsonContentType(createResult.res);
+      expectOrgUserCreateSuccessBody(createResult.body);
+      const orgUserId = createResult.body.data.orgUserId;
+      expect(typeof orgUserId === 'string' && orgUserId.length > 0, 'created orgUserId').toBeTruthy();
+
+      // create a payload to only update the profile fields and not the payroll fields  
+      const patchPayload ={   
+        "branchId": session.branchId,
+        "fullName": `supervisor.patch.${Date.now()}`,
+        "phoneNumber": "07000000000",
+        "addressLine1": "Updated Address",
+        "position": "Store Assistant",
+        "departmentIds": parseUuidList(env.USER_CREATE_DEPARTMENT_IDS),
+      }
+
+      const patchResult = await postPatch(client, session, orgUserId, patchPayload, testInfo, 'orgs/users-update-rules-create-supervisor');
+      expectSuccessStatus(patchResult.res, patchResult.body);
+      expectJsonContentType(patchResult.res);
+      expectOrgUserPatchSuccessBody(patchResult.body);
+    } finally {
+      await client.dispose();
+    }
+  });
+
+  test('rejects supervisor cannot update National Insurance Number', async ({}, testInfo) => {
+    const supervisor = getSeededAccountByKey('t3_supervisor');
+    test.skip(!supervisor, 'Set supervisor from seeded accounts key t3_supervisor');
+    const client = await createApiClient();
+    try {
+      const session = await loginWithOtp(client, {
+        email: supervisor.email,
+        password: supervisor.password,
+        otp: env.VERIFY_OTP
+      });
+      test.skip(!session.ok, session.ok ? '' : `OTP failed at ${session.step}`);
+      test.skip(!session.branchId, 'Supervisor session must include branch.id');
+      const orgUserId = await createSupervisorTargetUser(client, session, testInfo, 'supervisor.patch.forbid.ni');
+      const patchPayload = buildUpdateUserPayload({
+        branchId: session.branchId,
+        fullName: `supervisor.update.${Date.now()}`,
         departmentIds: parseUuidList(env.USER_CREATE_DEPARTMENT_IDS),
         headDepartmentIds: [],
-        overrides: { modules: ['INVENTORY', 'TASKS'] }
+        overrides: { nationalInsuranceNumber: 'QQ112233D' }
       });
-      const { res, body } = await postCreate(client, session, payload, testInfo, 'orgs/users-create-sup-modules');
-      expectNonSuccess(res);
-      expect([400, 403, 422].includes(res.status())).toBeTruthy();
-      expect(body && body.success === false).toBeTruthy();
+      const { res, body } = await postPatch(client, session, orgUserId, patchPayload, testInfo, 'orgs/users-update-supervisor-forbid-ni');
+      expectSupervisorForbiddenUpdate(res, body);
+    } finally {
+      await client.dispose();
+    }
+  });
+
+  test('rejects supervisor cannot update share code', async ({}, testInfo) => {
+    const supervisor = getSeededAccountByKey('t3_supervisor');
+    test.skip(!supervisor, 'Set supervisor from seeded accounts key t3_supervisor');
+    const client = await createApiClient();
+    try {
+      const session = await loginWithOtp(client, {
+        email: supervisor.email,
+        password: supervisor.password,
+        otp: env.VERIFY_OTP
+      });
+      test.skip(!session.ok, session.ok ? '' : `OTP failed at ${session.step}`);
+      test.skip(!session.branchId, 'Supervisor session must include branch.id');
+      const orgUserId = await createSupervisorTargetUser(client, session, testInfo, 'supervisor.patch.forbid.share');
+      const patchPayload = buildUpdateUserPayload({
+        branchId: session.branchId,
+        fullName: `supervisor.update.${Date.now()}`,
+        departmentIds: parseUuidList(env.USER_CREATE_DEPARTMENT_IDS),
+        headDepartmentIds: [],
+        overrides: { shareCode: 'SCODE-SUP-001' }
+      });
+      const { res, body } = await postPatch(client, session, orgUserId, patchPayload, testInfo, 'orgs/users-update-supervisor-forbid-share-code');
+      expectSupervisorForbiddenUpdate(res, body);
+    } finally {
+      await client.dispose();
+    }
+  });
+
+  test('rejects supervisor cannot update tax ID', async ({}, testInfo) => {
+    const supervisor = getSeededAccountByKey('t3_supervisor');
+    test.skip(!supervisor, 'Set supervisor from seeded accounts key t3_supervisor');
+    const client = await createApiClient();
+    try {
+      const session = await loginWithOtp(client, {
+        email: supervisor.email,
+        password: supervisor.password,
+        otp: env.VERIFY_OTP
+      });
+      test.skip(!session.ok, session.ok ? '' : `OTP failed at ${session.step}`);
+      test.skip(!session.branchId, 'Supervisor session must include branch.id');
+      const orgUserId = await createSupervisorTargetUser(client, session, testInfo, 'supervisor.patch.forbid.tax');
+      const patchPayload = buildUpdateUserPayload({
+        branchId: session.branchId,
+        fullName: `supervisor.update.${Date.now()}`,
+        departmentIds: parseUuidList(env.USER_CREATE_DEPARTMENT_IDS),
+        headDepartmentIds: [],
+        overrides: { taxId: 'TAX-FORBIDDEN-001' }
+      });
+      const { res, body } = await postPatch(client, session, orgUserId, patchPayload, testInfo, 'orgs/users-update-supervisor-forbid-tax-id');
+      expectSupervisorForbiddenUpdate(res, body);
+    } finally {
+      await client.dispose();
+    }
+  });
+
+  test('rejects supervisor cannot change branchRole', async ({}, testInfo) => {
+    const supervisor = getSeededAccountByKey('t3_supervisor');
+    test.skip(!supervisor, 'Set supervisor from seeded accounts key t3_supervisor');
+    const client = await createApiClient();
+    try {
+      const session = await loginWithOtp(client, {
+        email: supervisor.email,
+        password: supervisor.password,
+        otp: env.VERIFY_OTP
+      });
+      test.skip(!session.ok, session.ok ? '' : `OTP failed at ${session.step}`);
+      test.skip(!session.branchId, 'Supervisor session must include branch.id');
+      const orgUserId = await createSupervisorTargetUser(client, session, testInfo, 'supervisor.patch.forbid.branch-role');
+      const patchPayload = buildUpdateUserPayload({
+        branchId: session.branchId,
+        fullName: `supervisor.update.${Date.now()}`,
+        departmentIds: parseUuidList(env.USER_CREATE_DEPARTMENT_IDS),
+        headDepartmentIds: [],
+        overrides: { branchRole: 'SUPERVISOR' }
+      });
+      const { res, body } = await postPatch(client, session, orgUserId, patchPayload, testInfo, 'orgs/users-update-supervisor-forbid-branch-role');
+      expectSupervisorForbiddenUpdate(res, body);
+    } finally {
+      await client.dispose();
+    }
+  });
+
+  test('rejects supervisor cannot manage payroll fields', async ({}, testInfo) => {
+    const supervisor = getSeededAccountByKey('t3_supervisor');
+    test.skip(!supervisor, 'Set supervisor from seeded accounts key t3_supervisor');
+    const client = await createApiClient();
+    try {
+      const session = await loginWithOtp(client, {
+        email: supervisor.email,
+        password: supervisor.password,
+        otp: env.VERIFY_OTP
+      });
+      test.skip(!session.ok, session.ok ? '' : `OTP failed at ${session.step}`);
+      test.skip(!session.branchId, 'Supervisor session must include branch.id');
+      const orgUserId = await createSupervisorTargetUser(client, session, testInfo, 'supervisor.patch.forbid.payroll');
+      const patchPayload = {
+        ...buildMinimalAllowedSupervisorPatchPayload(session),
+        paymentMethod: 'BANK_TRANSFER',
+        paymentFrequency: 'WEEKLY',
+        paymentDay: 'END_OF_MONTH',
+        accountName: 'Forbidden Payroll User',
+        bankName: 'Barclays',
+        bankBranch: 'London West',
+        currency: 'GBP',
+        baseWage: '3000.00',
+        overtimeRate: '2.00',
+        wagePeriod: 'WEEKLY',
+  
+      };
+      const { res, body } = await postPatch(client, session, orgUserId, patchPayload, testInfo, 'orgs/users-update-supervisor-forbid-payroll');
+      expectSupervisorForbiddenUpdate(res, body);
+    } finally {
+      await client.dispose();
+    }
+  });
+
+  test('rejects supervisor cannot manage module permissions', async ({}, testInfo) => {
+    const supervisor = getSeededAccountByKey('t3_supervisor');
+    test.skip(!supervisor, 'Set supervisor from seeded accounts key t3_supervisor');
+    const client = await createApiClient();
+    try {
+      const session = await loginWithOtp(client, {
+        email: supervisor.email,
+        password: supervisor.password,
+        otp: env.VERIFY_OTP
+      });
+      test.skip(!session.ok, session.ok ? '' : `OTP failed at ${session.step}`);
+      test.skip(!session.branchId, 'Supervisor session must include branch.id');
+      const orgUserId = await createSupervisorTargetUser(client, session, testInfo, 'supervisor.patch.forbid.modules');
+      const patchPayload = buildUpdateUserPayload({
+        branchId: session.branchId,
+        fullName: `supervisor.update.${Date.now()}`,
+        departmentIds: parseUuidList(env.USER_CREATE_DEPARTMENT_IDS),
+        headDepartmentIds: [],
+        overrides: { modules: ['INVENTORY', 'PAYROLL'] }
+      });
+      const { res, body } = await postPatch(client, session, orgUserId, patchPayload, testInfo, 'orgs/users-update-supervisor-forbid-modules');
+      expectSupervisorForbiddenUpdate(res, body);
     } finally {
       await client.dispose();
     }

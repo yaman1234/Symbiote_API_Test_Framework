@@ -10,18 +10,14 @@
     "grep": {},
     "grepInvert": null,
     "maxFailures": 0,
-    "metadata": {
-      "actualWorkers": 1
-    },
+    "metadata": {},
     "preserveOutput": "always",
     "projects": [
       {
         "outputDir": "G:/Vibe Coding/API_Testing_Framework/reports/test-results",
         "repeatEach": 1,
         "retries": 0,
-        "metadata": {
-          "actualWorkers": 1
-        },
+        "metadata": {},
         "id": "",
         "name": "",
         "testDir": "G:/Vibe Coding/API_Testing_Framework/tests",
@@ -72,25 +68,22 @@
   },
   "suites": [
     {
-      "title": "api\\smoke\\tasks.list.spec.js",
-      "file": "api/smoke/tasks.list.spec.js",
+      "title": "api\\regression\\users.create.rules.spec.js",
+      "file": "api/regression/users.create.rules.spec.js",
       "column": 0,
       "line": 0,
       "specs": [],
       "suites": [
         {
-          "title": "List tasks @smoke @tasks",
-          "file": "api/smoke/tasks.list.spec.js",
-          "line": 15,
+          "title": "Create user rules : ",
+          "file": "api/regression/users.create.rules.spec.js",
+          "line": 134,
           "column": 6,
           "specs": [
             {
-              "title": "GET /orgs/:orgId/branches/:branchId/tasks : returns task list with pagination and filters",
+              "title": "allows owner to create user in own branch",
               "ok": true,
-              "tags": [
-                "smoke",
-                "tasks"
-              ],
+              "tags": [],
               "tests": [
                 {
                   "timeout": 30000,
@@ -98,33 +91,361 @@
                   "expectedStatus": "passed",
                   "projectId": "",
                   "projectName": "",
-                  "results": [
-                    {
-                      "workerIndex": 0,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 2921,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-04-20T15:51:21.070Z",
-                      "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "api-response.json",
-                          "contentType": "application/json",
-                          "body": "ewogICJ1cmxIaW50IjogImh0dHBzOi8vYXBpLXFhLnN5bWJpb3Rlcy5jby51ay9hcGkvdjEvb3Jncy84OWFiYzRkYi00OWZjLTQ3YjMtYmQ1ZC1jZmQyNjYzOGE5ZDMvYnJhbmNoZXMvNWI0NzI1ODMtNGYzOS00NDYwLWE1NmItYTdhYTE4NjBkZGJkL3Rhc2tzP3BhZ2U9MSZwYWdlU2l6ZT0yMCZzb3J0PXN0YXJ0QXQmb3JkZXI9YXNjIiwKICAiZW5kcG9pbnRQYXRoQW5kUXVlcnkiOiAiL2FwaS92MS9vcmdzLzg5YWJjNGRiLTQ5ZmMtNDdiMy1iZDVkLWNmZDI2NjM4YTlkMy9icmFuY2hlcy81YjQ3MjU4My00ZjM5LTQ0NjAtYTU2Yi1hN2FhMTg2MGRkYmQvdGFza3M/cGFnZT0xJnBhZ2VTaXplPTIwJnNvcnQ9c3RhcnRBdCZvcmRlcj1hc2MiLAogICJyZXF1ZXN0IjogewogICAgInBhdGgiOiAib3Jncy84OWFiYzRkYi00OWZjLTQ3YjMtYmQ1ZC1jZmQyNjYzOGE5ZDMvYnJhbmNoZXMvNWI0NzI1ODMtNGYzOS00NDYwLWE1NmItYTdhYTE4NjBkZGJkL3Rhc2tzIiwKICAgICJxdWVyeSI6IHsKICAgICAgInBhZ2UiOiAxLAogICAgICAicGFnZVNpemUiOiAyMCwKICAgICAgInNvcnQiOiAic3RhcnRBdCIsCiAgICAgICJvcmRlciI6ICJhc2MiCiAgICB9CiAgfSwKICAibG9naW5FbWFpbCI6ICJ0My5vd25lckBkZW1vLmNvbSIsCiAgImh0dHBTdGF0dXMiOiAyMDAsCiAgImh0dHBTdGF0dXNUZXh0IjogIk9LIiwKICAiYm9keSI6IHsKICAgICJzdWNjZXNzIjogdHJ1ZSwKICAgICJzdGF0dXNDb2RlIjogMjAwLAogICAgIm1lc3NhZ2UiOiAiVGFza3MgZmV0Y2hlZC4iLAogICAgImRhdGEiOiB7CiAgICAgICJpdGVtcyI6IFsKICAgICAgICB7CiAgICAgICAgICAiaWQiOiAiNDNhYmEyNzItZjJiOC00MDM2LWFjYjItOTllNjI2OTBmN2Y4IiwKICAgICAgICAgICJ0aXRsZSI6ICJPbmJvYXJkIG5ldyBlbXBsb3llZSAoRmViIGJhdGNoKSIsCiAgICAgICAgICAiZGVzY3JpcHRpb24iOiAiSFIgY2hlY2tsaXN0OiBkb2NzLCBwYXlyb2xsIHNldHVwLCB0cmFpbmluZywgZmlyc3Qtd2VlayBzY2hlZHVsZS4iLAogICAgICAgICAgInN0YXJ0QXQiOiAiMjAyNi0wMy0yNVQyMDoyNzo1Mi43ODhaIiwKICAgICAgICAgICJlbmRBdCI6ICIyMDI2LTAzLTI4VDIwOjI3OjUyLjc4OFoiLAogICAgICAgICAgImNyZWF0ZWRBdCI6ICIyMDI2LTAzLTI1VDIwOjI3OjUyLjgzNFoiLAogICAgICAgICAgInVwZGF0ZWRBdCI6ICIyMDI2LTAzLTI1VDIwOjI3OjUyLjgzNFoiLAogICAgICAgICAgInN0YXR1cyI6IHsKICAgICAgICAgICAgImlkIjogIjA0NjNjOGM1LWJhZTYtNDIwNC1iYzZiLTJiMjAzZWZjYWE1YiIsCiAgICAgICAgICAgICJuYW1lIjogIkluIFByb2dyZXNzIgogICAgICAgICAgfSwKICAgICAgICAgICJwcmlvcml0eSI6IHsKICAgICAgICAgICAgImlkIjogImVlNjcyMGFjLTMyMTktNDI0Mi1hNGZmLWQ1YWRhMGNmZTgwNCIsCiAgICAgICAgICAgICJuYW1lIjogIk1lZGl1bSIKICAgICAgICAgIH0sCiAgICAgICAgICAiYXNzaWduZWUiOiB7CiAgICAgICAgICAgICJpZCI6ICI5YmZkMTU4NS04ZWY2LTQ4ZWMtOTczNy1mNmI5Y2JkMDExNzciLAogICAgICAgICAgICAibmFtZSI6ICJUMyBTdXBlcnZpc29yIgogICAgICAgICAgfSwKICAgICAgICAgICJpc1JlY3VycmluZyI6IGZhbHNlLAogICAgICAgICAgImNvdW50cyI6IHsKICAgICAgICAgICAgImF0dGFjaG1lbnRzIjogMCwKICAgICAgICAgICAgInJlbWluZGVycyI6IDAsCiAgICAgICAgICAgICJjb21tZW50cyI6IDAKICAgICAgICAgIH0KICAgICAgICB9LAogICAgICAgIHsKICAgICAgICAgICJpZCI6ICIyY2E4ZmE0Zi1iYmZkLTRlMWUtYTI0ZS03MzJiMzFhOGVmODEiLAogICAgICAgICAgInRpdGxlIjogIkNvbGxlY3QgZG9jdW1lbnRzIChJRCwgTkksIHRheCkiLAogICAgICAgICAgImRlc2NyaXB0aW9uIjogIlZlcmlmeSBhbmQgc3RvcmUgaW4gZW1wbG95ZWUgZm9sZGVyLiIsCiAgICAgICAgICAic3RhcnRBdCI6ICIyMDI2LTAzLTI1VDIwOjI3OjUyLjc4OFoiLAogICAgICAgICAgImVuZEF0IjogIjIwMjYtMDMtMjZUMjA6Mjc6NTIuNzg4WiIsCiAgICAgICAgICAiY3JlYXRlZEF0IjogIjIwMjYtMDMtMjVUMjA6Mjc6NTIuODQwWiIsCiAgICAgICAgICAidXBkYXRlZEF0IjogIjIwMjYtMDMtMjVUMjA6Mjc6NTIuODQwWiIsCiAgICAgICAgICAic3RhdHVzIjogewogICAgICAgICAgICAiaWQiOiAiMzdlZWIxMzctNzc3MS00YjU0LTk0Y2YtM2U1YTc5NTNjZDM5IiwKICAgICAgICAgICAgIm5hbWUiOiAiVG8gRG8iCiAgICAgICAgICB9LAogICAgICAgICAgInByaW9yaXR5IjogewogICAgICAgICAgICAiaWQiOiAiNTAyZmRjMzMtMTUyMC00OTE3LTg4ZmUtZTZhZTMyYTZmMTMyIiwKICAgICAgICAgICAgIm5hbWUiOiAiTG93IgogICAgICAgICAgfSwKICAgICAgICAgICJhc3NpZ25lZSI6IHsKICAgICAgICAgICAgImlkIjogIjgzNjc0MjRhLTAzODgtNDNlYy04MjIxLTYzZjE2NGIzMmY2ZiIsCiAgICAgICAgICAgICJuYW1lIjogIlQzIEVtcGxveWVlMSIKICAgICAgICAgIH0sCiAgICAgICAgICAiaXNSZWN1cnJpbmciOiBmYWxzZSwKICAgICAgICAgICJjb3VudHMiOiB7CiAgICAgICAgICAgICJhdHRhY2htZW50cyI6IDAsCiAgICAgICAgICAgICJyZW1pbmRlcnMiOiAxLAogICAgICAgICAgICAiY29tbWVudHMiOiAwCiAgICAgICAgICB9CiAgICAgICAgfSwKICAgICAgICB7CiAgICAgICAgICAiaWQiOiAiMDg2MWY5ZWYtZGFiZC00YjAwLWFkNjEtNmI0NDk0NGVkZTRjIiwKICAgICAgICAgICJ0aXRsZSI6ICJTY2hlZHVsZSBpbnRybyB0cmFpbmluZyIsCiAgICAgICAgICAiZGVzY3JpcHRpb24iOiAiQm9vayA2MCBtaW4gaW5kdWN0aW9uICsgdG9vbHMgd2Fsa3Rocm91Z2guIiwKICAgICAgICAgICJzdGFydEF0IjogIjIwMjYtMDMtMjVUMjA6Mjc6NTIuNzg4WiIsCiAgICAgICAgICAiZW5kQXQiOiAiMjAyNi0wMy0yN1QyMDoyNzo1Mi43ODhaIiwKICAgICAgICAgICJjcmVhdGVkQXQiOiAiMjAyNi0wMy0yNVQyMDoyNzo1Mi44NDdaIiwKICAgICAgICAgICJ1cGRhdGVkQXQiOiAiMjAyNi0wMy0yNVQyMDoyNzo1Mi44NDdaIiwKICAgICAgICAgICJzdGF0dXMiOiB7CiAgICAgICAgICAgICJpZCI6ICIzN2VlYjEzNy03NzcxLTRiNTQtOTRjZi0zZTVhNzk1M2NkMzkiLAogICAgICAgICAgICAibmFtZSI6ICJUbyBEbyIKICAgICAgICAgIH0sCiAgICAgICAgICAicHJpb3JpdHkiOiB7CiAgICAgICAgICAgICJpZCI6ICJlZTY3MjBhYy0zMjE5LTQyNDItYTRmZi1kNWFkYTBjZmU4MDQiLAogICAgICAgICAgICAibmFtZSI6ICJNZWRpdW0iCiAgICAgICAgICB9LAogICAgICAgICAgImFzc2lnbmVlIjogewogICAgICAgICAgICAiaWQiOiAiODM2NzQyNGEtMDM4OC00M2VjLTgyMjEtNjNmMTY0YjMyZjZmIiwKICAgICAgICAgICAgIm5hbWUiOiAiVDMgRW1wbG95ZWUxIgogICAgICAgICAgfSwKICAgICAgICAgICJpc1JlY3VycmluZyI6IGZhbHNlLAogICAgICAgICAgImNvdW50cyI6IHsKICAgICAgICAgICAgImF0dGFjaG1lbnRzIjogMCwKICAgICAgICAgICAgInJlbWluZGVycyI6IDAsCiAgICAgICAgICAgICJjb21tZW50cyI6IDAKICAgICAgICAgIH0KICAgICAgICB9CiAgICAgIF0sCiAgICAgICJwYWdlIjogMSwKICAgICAgInBhZ2VTaXplIjogMjAsCiAgICAgICJ0b3RhbCI6IDMKICAgIH0sCiAgICAibWV0YSI6IHsKICAgICAgInRpbWVzdGFtcCI6ICIyMDI2LTA0LTIwVDE1OjUxOjIzLjA5NFoiLAogICAgICAicGF0aCI6ICIvYXBpL3YxL29yZ3MvODlhYmM0ZGItNDlmYy00N2IzLWJkNWQtY2ZkMjY2MzhhOWQzL2JyYW5jaGVzLzViNDcyNTgzLTRmMzktNDQ2MC1hNTZiLWE3YWExODYwZGRiZC90YXNrcz9wYWdlPTEmcGFnZVNpemU9MjAmc29ydD1zdGFydEF0Jm9yZGVyPWFzYyIsCiAgICAgICJyZXF1ZXN0SWQiOiAiM2VmMDZiMzQtYjJhNy00ZTAzLWJkZGQtYTNhMWFkMWY2MWM3IgogICAgfQogIH0KfQ=="
-                        }
-                      ]
-                    }
-                  ],
-                  "status": "expected"
+                  "results": [],
+                  "status": "skipped"
                 }
               ],
-              "id": "ed1acea2f14ab93fda81-4381dd596ed559d65a47",
-              "file": "api/smoke/tasks.list.spec.js",
-              "line": 17,
+              "id": "63d72b6663117a637bd9-cb3e240f2fa4c436e392",
+              "file": "api/regression/users.create.rules.spec.js",
+              "line": 138,
+              "column": 1
+            },
+            {
+              "title": "allows supervisor to create user in own branch",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "63d72b6663117a637bd9-6f91ee95876be2903d94",
+              "file": "api/regression/users.create.rules.spec.js",
+              "line": 170,
+              "column": 1
+            },
+            {
+              "title": "rejects employee cannot create users",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "63d72b6663117a637bd9-fe4c4298f5f20980a18c",
+              "file": "api/regression/users.create.rules.spec.js",
+              "line": 203,
+              "column": 3
+            },
+            {
+              "title": "enforces mandatory fields for create user API",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "63d72b6663117a637bd9-f3d58ac8a9e835e65357",
+              "file": "api/regression/users.create.rules.spec.js",
+              "line": 238,
+              "column": 1
+            },
+            {
+              "title": "rejects supervisor cannot create users in another branch",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "63d72b6663117a637bd9-f23638477406be4d71f1",
+              "file": "api/regression/users.create.rules.spec.js",
+              "line": 281,
+              "column": 1
+            },
+            {
+              "title": "rejects supervisor cannot create users with branchRole SUPERVISOR",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "63d72b6663117a637bd9-6a0454490df591030af4",
+              "file": "api/regression/users.create.rules.spec.js",
+              "line": 316,
+              "column": 1
+            },
+            {
+              "title": "rejects duplicate membership (same email) in the same organization",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "63d72b6663117a637bd9-7b0f6bed6e67807dc7f1",
+              "file": "api/regression/users.create.rules.spec.js",
+              "line": 344,
+              "column": 1
+            },
+            {
+              "title": "rejects invalid department id",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "63d72b6663117a637bd9-71239388b389f281543a",
+              "file": "api/regression/users.create.rules.spec.js",
+              "line": 378,
+              "column": 1
+            },
+            {
+              "title": "rejects invalid supervisorOrgUserId",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "63d72b6663117a637bd9-179029b10dfc23a161af",
+              "file": "api/regression/users.create.rules.spec.js",
+              "line": 412,
+              "column": 1
+            },
+            {
+              "title": "rejects supervisor cannot set payroll fields",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "63d72b6663117a637bd9-d94221e0ebb4326a0d2a",
+              "file": "api/regression/users.create.rules.spec.js",
+              "line": 445,
+              "column": 1
+            }
+          ]
+        },
+        {
+          "title": "Update user rules : ",
+          "file": "api/regression/users.create.rules.spec.js",
+          "line": 477,
+          "column": 6,
+          "specs": [
+            {
+              "title": "allows owner to update user in own branch",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "63d72b6663117a637bd9-91899bd793b95eefd895",
+              "file": "api/regression/users.create.rules.spec.js",
+              "line": 480,
+              "column": 3
+            },
+            {
+              "title": "allows supervisor to update user in own branch",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "63d72b6663117a637bd9-fb0a75d4401f0d483d21",
+              "file": "api/regression/users.create.rules.spec.js",
+              "line": 531,
+              "column": 3
+            },
+            {
+              "title": "rejects supervisor cannot update National Insurance Number",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "63d72b6663117a637bd9-0abaf98ce0171cc7af87",
+              "file": "api/regression/users.create.rules.spec.js",
+              "line": 576,
+              "column": 3
+            },
+            {
+              "title": "rejects supervisor cannot update share code",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "63d72b6663117a637bd9-fffb0dba1e5b1d2432d4",
+              "file": "api/regression/users.create.rules.spec.js",
+              "line": 603,
+              "column": 3
+            },
+            {
+              "title": "rejects supervisor cannot update tax ID",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "63d72b6663117a637bd9-17fc319a196bf27937af",
+              "file": "api/regression/users.create.rules.spec.js",
+              "line": 630,
+              "column": 3
+            },
+            {
+              "title": "rejects supervisor cannot change branchRole",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "63d72b6663117a637bd9-9635b3ed9e07a03ef9b9",
+              "file": "api/regression/users.create.rules.spec.js",
+              "line": 657,
+              "column": 3
+            },
+            {
+              "title": "rejects supervisor cannot manage payroll fields",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "63d72b6663117a637bd9-55cdbccdf516939949bf",
+              "file": "api/regression/users.create.rules.spec.js",
+              "line": 684,
+              "column": 3
+            },
+            {
+              "title": "rejects supervisor cannot manage module permissions",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "63d72b6663117a637bd9-5fe3ee4cd29af463da9e",
+              "file": "api/regression/users.create.rules.spec.js",
+              "line": 718,
               "column": 3
             }
           ]
@@ -134,10 +455,10 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-04-20T15:51:18.364Z",
-    "duration": 5783.239,
-    "expected": 1,
-    "skipped": 0,
+    "startTime": "2026-04-26T11:33:14.103Z",
+    "duration": 114.45000000000005,
+    "expected": 0,
+    "skipped": 18,
     "unexpected": 0,
     "flaky": 0
   }

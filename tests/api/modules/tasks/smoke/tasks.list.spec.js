@@ -3,14 +3,14 @@
  * Requires JWT from login → send-otp → verify-otp.
  */
 const { test } = require('@playwright/test');
-const { env } = require('../../../config/env');
-const { createApiClient } = require('../../../helpers/apiClient');
-const { loginWithOtp } = require('../../../helpers/authSession');
-const { getSeededAccountByKey } = require('../../../helpers/testData');
-const { expectSuccessStatus, expectJsonContentType } = require('../../../helpers/assertions');
-const { expectTasksListSuccessBody } = require('../../../helpers/assertions.tasks');
-const { publishApiResponse } = require('../../../helpers/apiResponseReport');
-const { otpChainTestsSkippedReason } = require('../../../helpers/otpChainSkip');
+const { env } = require('../../../../../config/env');
+const { createApiClient } = require('../../../../../helpers/apiClient');
+const { loginWithOtp } = require('../../../../../helpers/authSession');
+const { getSeededAccountByKey } = require('../../../../../helpers/testData');
+const { expectSuccessStatus, expectJsonContentType } = require('../../../../../helpers/assertions');
+const { expectTasksListSuccessBody } = require('../../../../../helpers/assertions.tasks');
+const { publishApiResponse } = require('../../../../../helpers/apiResponseReport');
+const { otpChainTestsSkippedReason } = require('../../../../../helpers/otpChainSkip');
 
 test.describe('List tasks @smoke @tasks', () => {
   // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.

@@ -2,10 +2,10 @@
  * POST /auth/forgot-password — validation errors.
  */
 const { test } = require('@playwright/test');
-const { createApiClient } = require('../../../helpers/apiClient');
-const { expectJsonContentType, expectHttpStatus } = require('../../../helpers/assertions');
-const { expectAuthValidationErrorBody } = require('../../../helpers/assertions.auth');
-const { publishApiResponse } = require('../../../helpers/apiResponseReport');
+const { createApiClient } = require('../../../../../helpers/apiClient');
+const { expectJsonContentType, expectHttpStatus } = require('../../../../../helpers/assertions');
+const { expectAuthValidationErrorBody } = require('../../../../../helpers/assertions.auth');
+const { publishApiResponse } = require('../../../../../helpers/apiResponseReport');
 
 test.describe('Forgot password @negative @auth', () => {
   // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.

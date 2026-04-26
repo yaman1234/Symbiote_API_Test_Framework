@@ -1,11 +1,11 @@
 const { test } = require('@playwright/test');
-const { env } = require('../../../config/env');
-const { createApiClient } = require('../../../helpers/apiClient');
-const { expectSuccessStatus, expectJsonContentType } = require('../../../helpers/assertions');
-const { expectAuthSendOtpSuccessBody, expectAuthVerifyOtpSuccessBody } = require('../../../helpers/assertions.auth');
-const { postLoginExpectOtpChallenge } = require('../../../helpers/authLoginOtpStep');
-const { publishApiResponse } = require('../../../helpers/apiResponseReport');
-const { otpChainTestsSkippedReason } = require('../../../helpers/otpChainSkip');
+const { env } = require('../../../../../config/env');
+const { createApiClient } = require('../../../../../helpers/apiClient');
+const { expectSuccessStatus, expectJsonContentType } = require('../../../../../helpers/assertions');
+const { expectAuthSendOtpSuccessBody, expectAuthVerifyOtpSuccessBody } = require('../../../../../helpers/assertions.auth');
+const { postLoginExpectOtpChallenge } = require('../../../../../helpers/authLoginOtpStep');
+const { publishApiResponse } = require('../../../../../helpers/apiResponseReport');
+const { otpChainTestsSkippedReason } = require('../../../../../helpers/otpChainSkip');
 
 test.describe('Verify OTP @smoke', () => {
   // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.

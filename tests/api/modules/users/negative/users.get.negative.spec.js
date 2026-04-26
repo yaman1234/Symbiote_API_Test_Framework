@@ -1,7 +1,7 @@
 const { test } = require('@playwright/test');
-const { createApiClient } = require('../../../helpers/apiClient');
-const { expectHttpStatus, expectJsonContentType, expectJsonErrorBody } = require('../../../helpers/assertions');
-const { publishApiResponse } = require('../../../helpers/apiResponseReport');
+const { createApiClient } = require('../../../../../helpers/apiClient');
+const { expectHttpStatus, expectJsonContentType, expectJsonErrorBody } = require('../../../../../helpers/assertions');
+const { publishApiResponse } = require('../../../../../helpers/apiResponseReport');
 
 test.describe('Get org user @negative @users', () => {
   // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.

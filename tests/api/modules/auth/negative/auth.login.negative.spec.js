@@ -1,17 +1,17 @@
 const { test, expect } = require('@playwright/test');
-const { env } = require('../../../config/env');
-const { createApiClient } = require('../../../helpers/apiClient');
+const { env } = require('../../../../../config/env');
+const { createApiClient } = require('../../../../../helpers/apiClient');
 const {
   expectJsonContentType,
   expectHttpStatus,
   expectSuccessStatus
-} = require('../../../helpers/assertions');
+} = require('../../../../../helpers/assertions');
 const {
   expectAuthInvalidCredentialsBody,
   expectAuthValidationErrorBody,
   expectAuthLoginOtpSuccessBody
-} = require('../../../helpers/assertions.auth');
-const { publishApiResponse } = require('../../../helpers/apiResponseReport');
+} = require('../../../../../helpers/assertions.auth');
+const { publishApiResponse } = require('../../../../../helpers/apiResponseReport');
 
 const KNOWN_EMAIL = 't3.owner@demo.com';
 const WRONG_PASSWORD = 'DefinitelyWrong#NotReal99';

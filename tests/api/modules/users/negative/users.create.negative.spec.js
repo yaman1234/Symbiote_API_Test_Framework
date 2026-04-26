@@ -1,12 +1,12 @@
 const { test } = require('@playwright/test');
-const { env } = require('../../../config/env');
-const { createApiClient } = require('../../../helpers/apiClient');
-const { loginWithOtp } = require('../../../helpers/authSession');
-const { buildCreateUserPayload, parseUuidList } = require('../../../helpers/createUserPayload');
-const { expectHttpStatus, expectJsonContentType, expectJsonErrorBody } = require('../../../helpers/assertions');
-const { expectAuthValidationErrorBody } = require('../../../helpers/assertions.auth');
-const { publishApiResponse } = require('../../../helpers/apiResponseReport');
-const { otpChainTestsSkippedReason } = require('../../../helpers/otpChainSkip');
+const { env } = require('../../../../../config/env');
+const { createApiClient } = require('../../../../../helpers/apiClient');
+const { loginWithOtp } = require('../../../../../helpers/authSession');
+const { buildCreateUserPayload, parseUuidList } = require('../../../../../helpers/createUserPayload');
+const { expectHttpStatus, expectJsonContentType, expectJsonErrorBody } = require('../../../../../helpers/assertions');
+const { expectAuthValidationErrorBody } = require('../../../../../helpers/assertions.auth');
+const { publishApiResponse } = require('../../../../../helpers/apiResponseReport');
+const { otpChainTestsSkippedReason } = require('../../../../../helpers/otpChainSkip');
 
 test.describe('Create org user @negative @users', () => {
   // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.

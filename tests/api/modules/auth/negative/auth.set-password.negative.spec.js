@@ -2,11 +2,11 @@
  * POST /auth/set-password — validation errors (token / password policy).
  */
 const { test } = require('@playwright/test');
-const { env } = require('../../../config/env');
-const { createApiClient } = require('../../../helpers/apiClient');
-const { expectJsonContentType, expectHttpStatus } = require('../../../helpers/assertions');
-const { expectAuthValidationErrorBody, expectAuthPasswordActionBadRequestBody } = require('../../../helpers/assertions.auth');
-const { publishApiResponse } = require('../../../helpers/apiResponseReport');
+const { env } = require('../../../../../config/env');
+const { createApiClient } = require('../../../../../helpers/apiClient');
+const { expectJsonContentType, expectHttpStatus } = require('../../../../../helpers/assertions');
+const { expectAuthValidationErrorBody, expectAuthPasswordActionBadRequestBody } = require('../../../../../helpers/assertions.auth');
+const { publishApiResponse } = require('../../../../../helpers/apiResponseReport');
 
 test.describe('Set password @negative @auth', () => {
   // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.

@@ -1,14 +1,14 @@
 const { test } = require('@playwright/test');
-const { env } = require('../../../config/env');
-const { createApiClient } = require('../../../helpers/apiClient');
+const { env } = require('../../../../../config/env');
+const { createApiClient } = require('../../../../../helpers/apiClient');
 const {
   expectJsonContentType,
   expectHttpStatus,
   expectSuccessStatus
-} = require('../../../helpers/assertions');
-const { expectAuthRefreshInvalidBody } = require('../../../helpers/assertions.auth');
-const { publishApiResponse } = require('../../../helpers/apiResponseReport');
-const { otpChainTestsSkippedReason } = require('../../../helpers/otpChainSkip');
+} = require('../../../../../helpers/assertions');
+const { expectAuthRefreshInvalidBody } = require('../../../../../helpers/assertions.auth');
+const { publishApiResponse } = require('../../../../../helpers/apiResponseReport');
+const { otpChainTestsSkippedReason } = require('../../../../../helpers/otpChainSkip');
 
 test.describe('Refresh token @negative', () => {
   async function postRefresh(testInfo, { data = {}, extraHeaders = {}, loginEmail } = {}) {

@@ -3,20 +3,20 @@
  * @see testCases/Orgs_users-patch.md
  */
 const { test, expect } = require('@playwright/test');
-const { env } = require('../../../config/env');
-const { createApiClient } = require('../../../helpers/apiClient');
-const { loginWithOtp } = require('../../../helpers/authSession');
-const { expectSuccessStatus, expectJsonContentType } = require('../../../helpers/assertions');
+const { env } = require('../../../../../config/env');
+const { createApiClient } = require('../../../../../helpers/apiClient');
+const { loginWithOtp } = require('../../../../../helpers/authSession');
+const { expectSuccessStatus, expectJsonContentType } = require('../../../../../helpers/assertions');
 const {
   expectOrgUserCreateSuccessBody,
   expectOrgUserGetSuccessBody,
   expectOrgUserPatchSuccessBody,
   expectOrgUserDetailMatchesPatch,
   getOrgUserDetailField
-} = require('../../../helpers/assertions.users');
-const { publishApiResponse } = require('../../../helpers/apiResponseReport');
-const { otpChainTestsSkippedReason } = require('../../../helpers/otpChainSkip');
-const { buildCreateUserPayload, buildUpdateUserPayload, parseUuidList } = require('../../../helpers/createUserPayload');
+} = require('../../../../../helpers/assertions.users');
+const { publishApiResponse } = require('../../../../../helpers/apiResponseReport');
+const { otpChainTestsSkippedReason } = require('../../../../../helpers/otpChainSkip');
+const { buildCreateUserPayload, buildUpdateUserPayload, parseUuidList } = require('../../../../../helpers/createUserPayload');
 
 test.describe('Update org user flow @smoke @users', () => {
   // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.

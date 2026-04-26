@@ -3,13 +3,13 @@
  * This spec uses loginWithOtp(); it skips when SKIP_OTP_CHAIN_TESTS is set or any step fails.
  */
 const { test } = require('@playwright/test');
-const { env } = require('../../../config/env');
-const { createApiClient } = require('../../../helpers/apiClient');
-const { loginWithOtp } = require('../../../helpers/authSession');
-const { expectSuccessStatus, expectJsonContentType } = require('../../../helpers/assertions');
-const { expectOrgUsersListSuccessBody } = require('../../../helpers/assertions.users');
-const { publishApiResponse } = require('../../../helpers/apiResponseReport');
-const { otpChainTestsSkippedReason } = require('../../../helpers/otpChainSkip');
+const { env } = require('../../../../../config/env');
+const { createApiClient } = require('../../../../../helpers/apiClient');
+const { loginWithOtp } = require('../../../../../helpers/authSession');
+const { expectSuccessStatus, expectJsonContentType } = require('../../../../../helpers/assertions');
+const { expectOrgUsersListSuccessBody } = require('../../../../../helpers/assertions.users');
+const { publishApiResponse } = require('../../../../../helpers/apiResponseReport');
+const { otpChainTestsSkippedReason } = require('../../../../../helpers/otpChainSkip');
 
 test.describe('List org users @smoke @users', () => {
   // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.

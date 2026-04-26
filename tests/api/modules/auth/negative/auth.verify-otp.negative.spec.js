@@ -1,18 +1,18 @@
 const { test, expect } = require('@playwright/test');
-const { env } = require('../../../config/env');
-const { createApiClient } = require('../../../helpers/apiClient');
+const { env } = require('../../../../../config/env');
+const { createApiClient } = require('../../../../../helpers/apiClient');
 const {
   expectJsonContentType,
   expectHttpStatus,
   expectSuccessStatus
-} = require('../../../helpers/assertions');
+} = require('../../../../../helpers/assertions');
 const {
   expectAuthVerifyOtpValidationErrorBody,
   expectAuthVerifyOtpInvalidOtpBody,
   expectAuthVerifyOtpBadRequestBody
-} = require('../../../helpers/assertions.auth');
-const { publishApiResponse } = require('../../../helpers/apiResponseReport');
-const { otpChainTestsSkippedReason } = require('../../../helpers/otpChainSkip');
+} = require('../../../../../helpers/assertions.auth');
+const { publishApiResponse } = require('../../../../../helpers/apiResponseReport');
+const { otpChainTestsSkippedReason } = require('../../../../../helpers/otpChainSkip');
 
 test.describe('Verify OTP @negative', () => {
   async function postVerifyOtp(payload, testInfo, loginEmail) {
@@ -36,7 +36,6 @@ test.describe('Verify OTP @negative', () => {
   }
 
   // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
-
 
   test('POST /auth/verify-otp : rejects OTP not generated → 400', async ({}, testInfo) => {
     test.skip(!env.LOGIN_EMAIL || !env.LOGIN_PASSWORD, 'Set LOGIN_EMAIL and LOGIN_PASSWORD in .env');

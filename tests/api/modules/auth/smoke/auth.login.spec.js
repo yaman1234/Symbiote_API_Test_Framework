@@ -1,8 +1,8 @@
 const { test } = require('@playwright/test');
-const { env } = require('../../../config/env');
-const { createApiClient } = require('../../../helpers/apiClient');
-const { expectSuccessStatus, expectJsonContentType, expectJsonSuccessBody, expectHttpStatus, expectFieldExists, expectFieldValue } = require('../../../helpers/assertions');
-const { publishApiResponse } = require('../../../helpers/apiResponseReport');
+const { env } = require('../../../../../config/env');
+const { createApiClient } = require('../../../../../helpers/apiClient');
+const { expectSuccessStatus, expectJsonContentType, expectJsonSuccessBody, expectHttpStatus, expectFieldExists, expectFieldValue } = require('../../../../../helpers/assertions');
+const { publishApiResponse } = require('../../../../../helpers/apiResponseReport');
 
 test.describe('Login @smoke', () => {
   // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
@@ -40,6 +40,4 @@ test.describe('Login @smoke', () => {
       await client.dispose();
     }
   });
-
-
 });

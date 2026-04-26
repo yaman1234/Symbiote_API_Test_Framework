@@ -2,15 +2,15 @@
  * POST /orgs/:orgId/users — requires login → send-otp → verify-otp (Bearer), Owner-capable account.
  */
 const { test } = require('@playwright/test');
-const { env } = require('../../../config/env');
-const { createApiClient } = require('../../../helpers/apiClient');
-const { loginWithOtp } = require('../../../helpers/authSession');
-const { expectSuccessStatus, expectJsonContentType } = require('../../../helpers/assertions');
-const { expectOrgUserCreateSuccessBody } = require('../../../helpers/assertions.users');
-const { publishApiResponse } = require('../../../helpers/apiResponseReport');
-const { otpChainTestsSkippedReason } = require('../../../helpers/otpChainSkip');
-const { buildCreateUserPayload } = require('../../../helpers/createUserPayload');
-const { parseUuidList } = require('../../../helpers/createUserPayload');
+const { env } = require('../../../../../config/env');
+const { createApiClient } = require('../../../../../helpers/apiClient');
+const { loginWithOtp } = require('../../../../../helpers/authSession');
+const { expectSuccessStatus, expectJsonContentType } = require('../../../../../helpers/assertions');
+const { expectOrgUserCreateSuccessBody } = require('../../../../../helpers/assertions.users');
+const { publishApiResponse } = require('../../../../../helpers/apiResponseReport');
+const { otpChainTestsSkippedReason } = require('../../../../../helpers/otpChainSkip');
+const { buildCreateUserPayload } = require('../../../../../helpers/createUserPayload');
+const { parseUuidList } = require('../../../../../helpers/createUserPayload');
 
 test.describe('Create org user @smoke @users', () => {
   // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.

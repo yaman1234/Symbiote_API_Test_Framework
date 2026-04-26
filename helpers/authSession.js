@@ -26,8 +26,13 @@ async function loginWithOtp(client, { email, password, otp }) {
     return { ok: false, step: 'verify-otp', status: verifyRes.status(), body: verifyBody, loginEmail };
   }
   const branch = verifyBody.data.branch;
+  const branches = Array.isArray(verifyBody?.data?.branches) ? verifyBody.data.branches : [];
+  const activeBranch = branches.find((b) => b && b.status === 'ACTIVE' && typeof b.id === 'string' && b.id.length > 0);
+  const firstBranchWithId = branches.find((b) => b && typeof b.id === 'string' && b.id.length > 0);
   const branchId =
-    branch && typeof branch.id === 'string' && branch.id.length > 0 ? branch.id : null;
+    branch && typeof branch.id === 'string' && branch.id.length > 0
+      ? branch.id
+      : (activeBranch && activeBranch.id) || (firstBranchWithId && firstBranchWithId.id) || null;
   return {
     ok: true,
     loginEmail,

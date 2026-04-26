@@ -3,13 +3,13 @@
  * Uses the session caller's orgUserId from verify-otp (same org as list/create).
  */
 const { test } = require('@playwright/test');
-const { env } = require('../../../config/env');
-const { createApiClient } = require('../../../helpers/apiClient');
-const { loginWithOtp } = require('../../../helpers/authSession');
-const { expectSuccessStatus, expectJsonContentType } = require('../../../helpers/assertions');
-const { expectOrgUserGetSuccessBody } = require('../../../helpers/assertions.users');
-const { publishApiResponse } = require('../../../helpers/apiResponseReport');
-const { otpChainTestsSkippedReason } = require('../../../helpers/otpChainSkip');
+const { env } = require('../../../../../config/env');
+const { createApiClient } = require('../../../../../helpers/apiClient');
+const { loginWithOtp } = require('../../../../../helpers/authSession');
+const { expectSuccessStatus, expectJsonContentType } = require('../../../../../helpers/assertions');
+const { expectOrgUserGetSuccessBody } = require('../../../../../helpers/assertions.users');
+const { publishApiResponse } = require('../../../../../helpers/apiResponseReport');
+const { otpChainTestsSkippedReason } = require('../../../../../helpers/otpChainSkip');
 
 test.describe('Get org user @smoke @users', () => {
   // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
