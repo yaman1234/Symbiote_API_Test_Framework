@@ -22,6 +22,17 @@ function resolveCredential(explicitEmail, seededEmail, explicitPassword) {
   };
 }
 
+// LIST ALL THE TESTS IMPLEMENTED IN THE FILE HERE WITH THEIR SCENARIOS
+// Test 1: Owner can get user options for own branch
+// Test 2: Employee can get user options for own branch
+// Test 3: Supervisor can get user options for own branch
+// Test 4: Owner can get user options for another branch
+// Test 5: Employee can get user options for another branch
+// Test 6: Supervisor can get user options for another branch
+// Test 7: Owner can get user options for another branch
+// Test 8: Employee can get user options for another branch
+// Test 9: Supervisor can get user options for another branch
+
 test.describe('User options access by role @regression @users', () => {
   // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
 
