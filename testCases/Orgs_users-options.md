@@ -33,6 +33,17 @@ Payload envelope matches other Symbiote routes (`success`, `statusCode`, `messag
 | **SUPERVISOR** | **Own branch only** — use session `branchId` (or equivalent branch the API bound to that supervisor). |
 | **EMPLOYEE** | **Own branch only** — use session `branchId`. |
 
+## Role-based response expectations
+
+| Role | Allowed branch scope | Typical response |
+|------|-----------------------|------------------|
+| **OWNER** | Any valid org branch | **200** success options list |
+| **SUPERVISOR** | Own branch only | **200** success options list |
+| **EMPLOYEE** | Own branch only | **200** success options list |
+| **Any role without token** | None | **401** error envelope |
+
+If a role attempts a disallowed branch scope, treat expected behavior as role-restricted error (typically **4xx**) and assert error envelope consistency.
+
 ## Used for
 
 - Supervisor selector  
@@ -45,8 +56,8 @@ Payload envelope matches other Symbiote routes (`success`, `statusCode`, `messag
 
 - **TC_ID:** ORGS-OPTS-001  
 - **Suite:** Smoke  
-- **Spec_File:** `tests/api/smoke/users.options.spec.js`  
-- **Scenario:** Supervisor calls options with session `branchId`  
+- **Spec_File:** `tests/api/modules/users/smoke/users.options.spec.js`  
+- **Scenario:** Authorized supervisor gets options for session branchId  
 - **Expected:** HTTP **200**  
 - **Checks:**
   - `loginWithOtp` (supervisor); session has `branchId`  
@@ -61,8 +72,8 @@ Payload envelope matches other Symbiote routes (`success`, `statusCode`, `messag
 
 - **TC_ID:** ORGS-OPTS-002  
 - **Suite:** Negative  
-- **Spec_File:** `tests/api/negative/users.options.negative.spec.js`  
-- **Scenario:** No `Authorization`  
+- **Spec_File:** `tests/api/modules/users/negative/users.options.negative.spec.js`  
+- **Scenario:** Unauthorized request without Authorization  
 - **Expected:** HTTP **401**  
 - **Checks:** `expectJsonErrorBody` — 401, message contains Authentication, non-empty `error.code` and `error.key`  
 
@@ -73,7 +84,7 @@ Payload envelope matches other Symbiote routes (`success`, `statusCode`, `messag
 - **TC_ID:** ORGS-OPTS-003  
 - **Suite:** Regression  
 - **Spec_File:** `tests/api/regression/users.options.access.spec.js`  
-- **Scenario:** Owner calls options for a branch (`session.branchId` or `USER_CREATE_BRANCH_ID`)  
+- **Scenario:** Owner-selected branch options return successfully  
 - **Expected:** HTTP **200**  
 - **Checks:** Same options body contract as ORGS-OPTS-001  
 
@@ -84,6 +95,28 @@ Payload envelope matches other Symbiote routes (`success`, `statusCode`, `messag
 - **TC_ID:** ORGS-OPTS-004  
 - **Suite:** Regression  
 - **Spec_File:** `tests/api/regression/users.options.access.spec.js`  
-- **Scenario:** Employee calls options with own session `branchId`  
+- **Scenario:** Employee own-branch options return successfully  
 - **Expected:** HTTP **200**  
 - **Checks:** Same options body contract as ORGS-OPTS-001  
+
+---
+
+## ORGS-OPTS-005
+
+- **TC_ID:** ORGS-OPTS-005  
+- **Suite:** Regression  
+- **Spec_File:** `tests/api/regression/users.options.access.spec.js`  
+- **Scenario:** Forbidden employee cross-branch options request is rejected  
+- **Expected:** HTTP **4xx**  
+- **Checks:** Employee uses non-own `branchId`; response must be JSON error envelope with non-empty `error.code` and `error.key`  
+
+---
+
+## ORGS-OPTS-006
+
+- **TC_ID:** ORGS-OPTS-006  
+- **Suite:** Regression  
+- **Spec_File:** `tests/api/regression/users.options.access.spec.js`  
+- **Scenario:** Forbidden supervisor cross-branch options request is rejected  
+- **Expected:** HTTP **4xx**  
+- **Checks:** Supervisor uses non-own `branchId`; response must be JSON error envelope with non-empty `error.code` and `error.key`  

@@ -6,10 +6,10 @@ const { postLoginExpectOtpChallenge } = require('../../../../../helpers/authLogi
 const { publishApiResponse } = require('../../../../../helpers/apiResponseReport');
 const { otpChainTestsSkippedReason } = require('../../../../../helpers/otpChainSkip');
 
-test.describe('Send OTP @smoke', () => {
+test.describe('Send OTP', () => {
   // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
 
-  test('POST /auth/send-otp : returns OTP generated after login', async ({}, testInfo) => {
+  test('[AUTH-SENDOTP-001] : Successful login sends OTP with EMAIL method → 200', async ({}, testInfo) => {
     test.skip(!env.LOGIN_EMAIL || !env.LOGIN_PASSWORD, 'Set LOGIN_EMAIL and LOGIN_PASSWORD in .env');
     const skipOtp = otpChainTestsSkippedReason();
     test.skip(!!skipOtp, skipOtp);

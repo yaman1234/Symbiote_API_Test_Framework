@@ -17,8 +17,9 @@ const {
 const { publishApiResponse } = require('../../../../../helpers/apiResponseReport');
 const { otpChainTestsSkippedReason } = require('../../../../../helpers/otpChainSkip');
 
-test.describe('Template API @smoke', () => {
-  test('METHOD /your/endpoint : expected behavior', async ({}, testInfo) => {
+/* COMMENT OUT TO RUN 
+test.describe('Template API', () => {
+  test('[TEMPLATE-001] : Successful METHOD /your/endpoint returns expected behavior', async ({}, testInfo) => {
     // Pick a seeded user key from tests/data/seededAccounts.js
     const owner = getSeededAccountByKey('t1_owner');
     const email = (owner && owner.email) || env.LOGIN_EMAIL || '';
@@ -80,4 +81,6 @@ test.describe('Template API @smoke', () => {
       await client.dispose();
     }
   });
-});
+
+  */
+

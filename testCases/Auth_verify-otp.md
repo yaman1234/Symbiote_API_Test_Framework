@@ -6,8 +6,8 @@
 
 - **TC_ID:** AUTH-VERIFY-001  
 - **Suite:** Smoke  
-- **Spec_File:** `tests/api/smoke/auth.verify-otp.spec.js`  
-- **Scenario:** Full flow login → send-otp → verify  
+- **Spec_File:** `tests/api/modules/auth/smoke/auth.verify-otp.spec.js`  
+- **Scenario:** Successful login-send-otp-verify flow returns tokens  
 - **Expected:** Each step **200** (2xx)  
 - **Checks:**
   - Login + send-otp: success + auth helpers as in other specs  
@@ -19,8 +19,8 @@
 
 - **TC_ID:** AUTH-VERIFY-002  
 - **Suite:** Negative  
-- **Spec_File:** `tests/api/negative/auth.verify-otp.negative.spec.js`  
-- **Scenario:** OTP not generated (verify without send-otp)  
+- **Spec_File:** `tests/api/modules/auth/negative/auth.verify-otp.negative.spec.js`  
+- **Scenario:** Missing OTP generation returns 400 Bad Request  
 - **Expected:** HTTP **400**  
 - **Checks:** `expectHttpStatus` 400; JSON; `expectAuthVerifyOtpBadRequestBody` — `BAD_REQUEST`, `OTP not generated yet.`, `error.key` AUTH_FORBIDDEN  
 
@@ -30,8 +30,8 @@
 
 - **TC_ID:** AUTH-VERIFY-003  
 - **Suite:** Negative  
-- **Spec_File:** `tests/api/negative/auth.verify-otp.negative.spec.js`  
-- **Scenario:** Invalid OTP after send-otp  
+- **Spec_File:** `tests/api/modules/auth/negative/auth.verify-otp.negative.spec.js`  
+- **Scenario:** Invalid OTP returns 401 Unauthorized  
 - **Expected:** HTTP **401**  
 - **Checks:** `expectAuthVerifyOtpInvalidOtpBody` — UNAUTHORIZED, `Invalid OTP.`, `error.key` AUTH_INVALID_CREDENTIALS  
 
@@ -41,8 +41,8 @@
 
 - **TC_ID:** AUTH-VERIFY-004  
 - **Suite:** Negative  
-- **Spec_File:** `tests/api/negative/auth.verify-otp.negative.spec.js`  
-- **Scenario:** Missing `loginAttemptId`  
+- **Spec_File:** `tests/api/modules/auth/negative/auth.verify-otp.negative.spec.js`  
+- **Scenario:** Missing loginAttemptId returns 422 Validation Error  
 - **Expected:** HTTP **422**  
 - **Checks:** `expectAuthVerifyOtpValidationErrorBody` with **`loginAttemptId`** in details  
 
@@ -52,8 +52,8 @@
 
 - **TC_ID:** AUTH-VERIFY-005  
 - **Suite:** Negative  
-- **Spec_File:** `tests/api/negative/auth.verify-otp.negative.spec.js`  
-- **Scenario:** Missing `otp`  
+- **Spec_File:** `tests/api/modules/auth/negative/auth.verify-otp.negative.spec.js`  
+- **Scenario:** Missing otp returns 422 Validation Error  
 - **Expected:** HTTP **422**  
 - **Checks:** `expectAuthVerifyOtpValidationErrorBody` with **`otp`** in details  
 
@@ -63,8 +63,8 @@
 
 - **TC_ID:** AUTH-VERIFY-006  
 - **Suite:** Negative  
-- **Spec_File:** `tests/api/negative/auth.verify-otp.negative.spec.js`  
-- **Scenario:** OTP already used (second verify same attempt)  
+- **Spec_File:** `tests/api/modules/auth/negative/auth.verify-otp.negative.spec.js`  
+- **Scenario:** Reused OTP attempt returns 400 Bad Request  
 - **Expected:** HTTP **400**  
 - **Checks:** `expectAuthVerifyOtpBadRequestBody` — `OTP already used. Please login again.`, AUTH_FORBIDDEN  
 
@@ -75,7 +75,7 @@
 - **TC_ID:** AUTH-VERIFY-007  
 - **Suite:** Regression  
 - **Spec_File:** `tests/api/regression/qa-auth-matrix.spec.js`  
-- **Scenario:** [7] Static OTP after send-otp  
+- **Scenario:** Valid static OTP after send-otp succeeds  
 - **Expected:** HTTP **200**  
 - **Checks:** Same as AUTH-VERIFY-001 verify step; optional note on `Set-Cookie` (not asserted)  
 
@@ -86,7 +86,7 @@
 - **TC_ID:** AUTH-VERIFY-008  
 - **Suite:** Regression  
 - **Spec_File:** `tests/api/regression/qa-auth-matrix.spec.js`  
-- **Scenario:** [8] Verify before send-otp  
+- **Scenario:** Premature verify before send-otp returns 400 Bad Request  
 - **Expected:** HTTP **400**  
 - **Checks:** Same as AUTH-VERIFY-002  
 
@@ -97,7 +97,7 @@
 - **TC_ID:** AUTH-VERIFY-009  
 - **Suite:** Regression  
 - **Spec_File:** `tests/api/regression/qa-auth-matrix.spec.js`  
-- **Scenario:** [9] Wrong OTP  
+- **Scenario:** Wrong OTP returns 401 Unauthorized  
 - **Expected:** HTTP **401**  
 - **Checks:** Same as AUTH-VERIFY-003  
 
@@ -108,7 +108,7 @@
 - **TC_ID:** AUTH-VERIFY-010  
 - **Suite:** Regression  
 - **Spec_File:** `tests/api/regression/qa-auth-matrix.spec.js`  
-- **Scenario:** [10] Double verify same `loginAttemptId`  
+- **Scenario:** Double verify on same loginAttemptId returns 400 Bad Request  
 - **Expected:** HTTP **400**  
 - **Checks:** Same as AUTH-VERIFY-006  
 
@@ -119,7 +119,7 @@
 - **TC_ID:** AUTH-VERIFY-011  
 - **Suite:** Regression  
 - **Spec_File:** `tests/api/regression/qa-auth-matrix.spec.js`  
-- **Scenario:** [15] Tier 3 member — branch on verify body  
+- **Scenario:** Valid tier-3 member verify includes branch data  
 - **Expected:** HTTP **200**  
 - **Checks:**
   - Same as AUTH-VERIFY-001 verify body  

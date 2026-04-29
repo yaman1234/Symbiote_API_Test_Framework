@@ -3,10 +3,10 @@ const { createApiClient } = require('../../../../../helpers/apiClient');
 const { expectHttpStatus, expectJsonContentType, expectJsonErrorBody } = require('../../../../../helpers/assertions');
 const { publishApiResponse } = require('../../../../../helpers/apiResponseReport');
 
-test.describe('Get org user @negative @users', () => {
+test.describe('Get org user', () => {
   // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
 
-  test('GET /orgs/:orgId/users/:orgUserId : rejects GET without Authorization → 401', async ({}, testInfo) => {
+  test('[ORGS-USERS-GET-002] : Unauthorized request without Authorization header → 401', async ({}, testInfo) => {
     const client = await createApiClient();
     try {
       const orgId = '00000000-0000-0000-0000-000000000001';

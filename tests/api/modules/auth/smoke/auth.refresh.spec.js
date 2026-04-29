@@ -11,10 +11,10 @@ const {
 const { publishApiResponse } = require('../../../../../helpers/apiResponseReport');
 const { otpChainTestsSkippedReason } = require('../../../../../helpers/otpChainSkip');
 
-test.describe('Refresh token @smoke', () => {
+test.describe('Refresh token', () => {
   // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
 
-  test('POST /auth/refresh : returns refreshed tokens from JSON refreshToken', async ({}, testInfo) => {
+  test('[AUTH-REFRESH-001] : Successful OTP flow refreshes token with JSON refreshToken → 200', async ({}, testInfo) => {
     test.skip(
       !env.LOGIN_EMAIL || !env.LOGIN_PASSWORD,
       'Set LOGIN_EMAIL and LOGIN_PASSWORD in .env'

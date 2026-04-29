@@ -9,7 +9,7 @@ Path from **`PROTECTED_API_PATH`** in `.env` (relative to `BASE_URL`). Request u
 - **TC_ID:** MISC-PROT-001  
 - **Suite:** Regression  
 - **Spec_File:** `tests/api/regression/qa-auth-matrix.spec.js`  
-- **Scenario:** [14] Protected GET with invalid JWT  
+- **Scenario:** Invalid JWT on protected GET returns 401 Unauthorized  
 - **Expected:** HTTP **401**  
 - **Checks:**
   - `expectHttpStatus` 401  

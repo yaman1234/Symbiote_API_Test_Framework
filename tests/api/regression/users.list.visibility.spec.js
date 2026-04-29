@@ -53,7 +53,7 @@ function assertListHasAtLeast(body, minRows, label) {
 
 test.describe('List users visibility :', () => {
   // Test 1: Owner has org-wide visibility.
-  test('returns organization-wide users for owner', async ({}, testInfo) => {
+  test('[ORGS-USERS-003] : Organization-wide owner visibility returns full list → 200', async ({}, testInfo) => {
     const owner = getSeededAccountByKey('t3_owner');
     test.skip(!owner, 'Set owner from seeded accounts key t3_owner');
     const skipOtp = otpChainTestsSkippedReason();
@@ -79,7 +79,7 @@ test.describe('List users visibility :', () => {
   });
 
   // Test 2: Supervisor sees only users from own branch.
-  test('returns branch-scoped users for supervisor', async ({}, testInfo) => {
+  test('[ORGS-USERS-005] : Branch-scoped supervisor visibility returns branch users → 200', async ({}, testInfo) => {
     const supervisor = getSeededAccountByKey('t3_supervisor');
     test.skip(!supervisor, 'Set supervisor from seeded accounts key t3_supervisor');
     const skipOtp = otpChainTestsSkippedReason();
@@ -111,7 +111,7 @@ test.describe('List users visibility :', () => {
   });
 
   // Test 3: Employee sees only their own membership row.
-  test('returns only self for employee', async ({}, testInfo) => {
+  test('[ORGS-USERS-004] : Self-only employee visibility returns own record → 200', async ({}, testInfo) => {
     const employee = getSeededAccountByKey('t1_emp1');
     test.skip(!employee, 'Set employee from seeded accounts key t1_emp1');
     const skipOtp = otpChainTestsSkippedReason();
@@ -157,7 +157,7 @@ test.describe('List users visibility :', () => {
 // - Full name
 // - Employee ID
 
-test('returns users matching search query', async ({}, testInfo) => {
+test('[ORGS-USERS-008] : Matching search query returns filtered users → 200', async ({}, testInfo) => {
   const owner = getSeededAccountByKey('t3_owner');
   test.skip(!owner, 'Set owner from seeded accounts key t3_owner');
   const skipOtp = otpChainTestsSkippedReason();
@@ -195,7 +195,7 @@ test('returns users matching search query', async ({}, testInfo) => {
   });
 
 // Test 5: Employees cannot access other users via search/filters.
-test('employee search and filters cannot expose other users', async ({}, testInfo) => {
+test('[ORGS-USERS-006] : Protected employee filters do not expose other users → 200', async ({}, testInfo) => {
   const employee = getSeededAccountByKey('t1_emp1');
   test.skip(!employee, 'Set employee from seeded accounts key t1_emp1');
   const skipOtp = otpChainTestsSkippedReason();
@@ -239,7 +239,7 @@ test('employee search and filters cannot expose other users', async ({}, testInf
 });
 
 // Test 6: Invalid branch/department filters are rejected.
-test('rejects invalid branchId or departmentId filters', async ({}, testInfo) => {
+test('[ORGS-USERS-007] : Invalid branchId or departmentId filters return 4xx → 4XX', async ({}, testInfo) => {
   const owner = getSeededAccountByKey('t3_owner');
   test.skip(!owner, 'Set owner from seeded accounts key t3_owner');
   const skipOtp = otpChainTestsSkippedReason();

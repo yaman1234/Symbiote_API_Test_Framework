@@ -196,11 +196,10 @@ function main() {
     if (!latest) return row;
     return {
       ...row,
-      Last_Status: latest.Status || '',
-      Last_Run_Time: latest.Timestamp || '',
-      Last_Duration_ms: latest.Duration_ms || '',
-      Last_Error: latest.Error_Summary || '',
-      Last_Run_ID: latest.Run_ID || ''
+      'Last Status': latest.Status || '',
+      'Last Run Time': latest.Timestamp || '',
+      'Last API Response Time': latest.Duration_ms || '',
+      'Last Error': latest.Error_Summary || ''
     };
   });
 

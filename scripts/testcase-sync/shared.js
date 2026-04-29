@@ -9,19 +9,18 @@ const PLAYWRIGHT_JSON_PATH = path.resolve(process.cwd(), 'reports', 'json', 'res
 
 const MASTER_COLUMNS = [
   'TC_ID',
-  'API',
   'Method',
-  'Endpoint',
+  'EndPoint',
+  'Endpoint_Name',
   'Suite',
-  'Spec_File',
   'Scenario',
   'Expected',
+  'Last Status',
   'Checks',
-  'Last_Status',
-  'Last_Run_Time',
-  'Last_Duration_ms',
-  'Last_Error',
-  'Last_Run_ID'
+  'Last Run Time',
+  'Last API Response Time',
+  'Last Error',
+  'Spec_File'
 ];
 
 const RUN_RAW_COLUMNS = [
@@ -125,9 +124,9 @@ function getMatrixMarker(value) {
 }
 
 function buildDashboardSheet(workbook, masterRows, runRows) {
-  const passCount = masterRows.filter((r) => r.Last_Status === 'passed').length;
-  const failCount = masterRows.filter((r) => r.Last_Status === 'failed').length;
-  const skippedCount = masterRows.filter((r) => r.Last_Status === 'skipped').length;
+  const passCount = masterRows.filter((r) => r['Last Status'] === 'passed').length;
+  const failCount = masterRows.filter((r) => r['Last Status'] === 'failed').length;
+  const skippedCount = masterRows.filter((r) => r['Last Status'] === 'skipped').length;
 
   const latestRun = runRows.length
     ? runRows.reduce((acc, row) => {

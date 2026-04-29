@@ -4,10 +4,10 @@ const { createApiClient } = require('../../../../../helpers/apiClient');
 const { expectSuccessStatus, expectJsonContentType, expectJsonSuccessBody, expectHttpStatus, expectFieldExists, expectFieldValue } = require('../../../../../helpers/assertions');
 const { publishApiResponse } = require('../../../../../helpers/apiResponseReport');
 
-test.describe('Login @smoke', () => {
+test.describe('Login', () => {
   // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
 
-  test('POST /auth/login : returns OTP challenge', async ({}, testInfo) => {
+  test('[AUTH-LOGIN-001] : Valid credentials → OTP challenge → 200', async ({}, testInfo) => {
     test.skip(!env.LOGIN_EMAIL || !env.LOGIN_PASSWORD, 'Set LOGIN_EMAIL and LOGIN_PASSWORD in .env');
 
     const client = await createApiClient();

@@ -30,13 +30,13 @@ const WRONG_PASSWORD = 'DefinitelyWrong#NotReal99';
 const UNKNOWN_EMAIL = 'nonexistent.user@demo.com';
 const MALFORMED_REFRESH = 'not-a-valid-format';
 
-test.describe('QA test matrix @regression', () => {
+test.describe('QA test matrix', () => {
   test.describe.configure({ mode: 'serial' });
 
   // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
 
 
-  test('POST /auth/login : [1] returns valid login with seeded email/password', async ({}, testInfo) => {
+  test('[AUTH-LOGIN-010] : Valid seeded login succeeds → 200', async ({}, testInfo) => {
     test.skip(!env.LOGIN_EMAIL || !env.LOGIN_PASSWORD, 'Set LOGIN_EMAIL and LOGIN_PASSWORD in .env');
     const client = await createApiClient();
     try {
@@ -63,7 +63,7 @@ test.describe('QA test matrix @regression', () => {
   // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
 
 
-  test('POST /auth/login : [2] returns login with uppercase email (lowercased before lookup)', async ({}, testInfo) => {
+  test('[AUTH-LOGIN-011] : Uppercase email login succeeds → 200', async ({}, testInfo) => {
     test.skip(!env.LOGIN_EMAIL || !env.LOGIN_PASSWORD, 'Set LOGIN_EMAIL and LOGIN_PASSWORD in .env');
     const client = await createApiClient();
     try {
@@ -93,7 +93,7 @@ test.describe('QA test matrix @regression', () => {
   // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
 
 
-  test('POST /auth/login : [3] rejects login wrong password → 401', async ({}, testInfo) => {
+  test('[AUTH-LOGIN-012] : Wrong password returns 401 Unauthorized → 401', async ({}, testInfo) => {
     test.skip(!env.LOGIN_EMAIL, 'Set LOGIN_EMAIL in .env');
     const client = await createApiClient();
     try {
@@ -120,7 +120,7 @@ test.describe('QA test matrix @regression', () => {
   // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
 
 
-  test('POST /auth/login : [4] rejects login unknown email → 401', async ({}, testInfo) => {
+  test('[AUTH-LOGIN-013] : Unknown email returns 401 Unauthorized → 401', async ({}, testInfo) => {
     const client = await createApiClient();
     try {
       const requestPayload = { email: UNKNOWN_EMAIL, password: WRONG_PASSWORD };
@@ -146,7 +146,7 @@ test.describe('QA test matrix @regression', () => {
   // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
 
 
-  test('POST /auth/send-otp : [5] returns send-otp with valid loginAttemptId and EMAIL', async ({}, testInfo) => {
+  test('[AUTH-SENDOTP-006] : Valid loginAttemptId with EMAIL succeeds → 200', async ({}, testInfo) => {
     test.skip(!env.LOGIN_EMAIL || !env.LOGIN_PASSWORD, 'Set LOGIN_EMAIL and LOGIN_PASSWORD in .env');
     const skipOtp = otpChainTestsSkippedReason();
     test.skip(!!skipOtp, skipOtp);
@@ -181,7 +181,7 @@ test.describe('QA test matrix @regression', () => {
   // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
 
 
-  test('POST /auth/send-otp : [6] rejects send-otp with SMS → 400', async ({}, testInfo) => {
+  test('[AUTH-SENDOTP-007] : Unsupported SMS method returns 400 Bad Request → 400', async ({}, testInfo) => {
     test.skip(!env.LOGIN_EMAIL || !env.LOGIN_PASSWORD, 'Set LOGIN_EMAIL and LOGIN_PASSWORD in .env');
     const client = await createApiClient();
     try {
@@ -216,7 +216,7 @@ test.describe('QA test matrix @regression', () => {
   // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
 
 
-  test('POST /auth/verify-otp : [7] returns verify-otp with static OTP after send-otp', async ({}, testInfo) => {
+  test('[AUTH-VERIFY-007] : Valid static OTP after send-otp succeeds → 200', async ({}, testInfo) => {
     test.skip(!env.LOGIN_EMAIL || !env.LOGIN_PASSWORD, 'Set LOGIN_EMAIL and LOGIN_PASSWORD in .env');
     const skipOtp = otpChainTestsSkippedReason();
     test.skip(!!skipOtp, skipOtp);
@@ -264,7 +264,7 @@ test.describe('QA test matrix @regression', () => {
   // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
 
 
-  test('POST /auth/verify-otp : [8] rejects verify-otp before send-otp → 400', async ({}, testInfo) => {
+  test('[AUTH-VERIFY-008] : Premature verify before send-otp returns 400 Bad Request → 400', async ({}, testInfo) => {
     test.skip(!env.LOGIN_EMAIL || !env.LOGIN_PASSWORD, 'Set LOGIN_EMAIL and LOGIN_PASSWORD in .env');
     const client = await createApiClient();
     try {
@@ -296,7 +296,7 @@ test.describe('QA test matrix @regression', () => {
   // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
 
 
-  test('POST /auth/verify-otp : [9] rejects verify-otp with wrong OTP → 401', async ({}, testInfo) => {
+  test('[AUTH-VERIFY-009] : Wrong OTP returns 401 Unauthorized → 401', async ({}, testInfo) => {
     test.skip(!env.LOGIN_EMAIL || !env.LOGIN_PASSWORD, 'Set LOGIN_EMAIL and LOGIN_PASSWORD in .env');
     const skipOtp = otpChainTestsSkippedReason();
     test.skip(!!skipOtp, skipOtp);
@@ -336,7 +336,7 @@ test.describe('QA test matrix @regression', () => {
   // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
 
 
-  test('POST /auth/verify-otp : [10] rejects verify-otp twice on same loginAttempt → 400', async ({}, testInfo) => {
+  test('[AUTH-VERIFY-010] : Double verify on same loginAttemptId returns 400 Bad Request → 400', async ({}, testInfo) => {
     test.skip(!env.LOGIN_EMAIL || !env.LOGIN_PASSWORD, 'Set LOGIN_EMAIL and LOGIN_PASSWORD in .env');
     const skipOtp = otpChainTestsSkippedReason();
     test.skip(!!skipOtp, skipOtp);
@@ -384,7 +384,7 @@ test.describe('QA test matrix @regression', () => {
   // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
 
 
-  test('POST /auth/refresh : [11] returns refresh using response body refreshToken', async ({}, testInfo) => {
+  test('[AUTH-REFRESH-006] : Valid body refreshToken refresh succeeds → 200', async ({}, testInfo) => {
     test.skip(!env.LOGIN_EMAIL || !env.LOGIN_PASSWORD, 'Set LOGIN_EMAIL and LOGIN_PASSWORD in .env');
     const skipOtp = otpChainTestsSkippedReason();
     test.skip(!!skipOtp, skipOtp);
@@ -426,7 +426,7 @@ test.describe('QA test matrix @regression', () => {
   // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
 
 
-  test('POST /auth/refresh : [12] returns refresh using cookie only (refresh_token)', async ({}, testInfo) => {
+  test('[AUTH-REFRESH-007] : Valid cookie-only refresh_token succeeds → 200', async ({}, testInfo) => {
     test.skip(!env.LOGIN_EMAIL || !env.LOGIN_PASSWORD, 'Set LOGIN_EMAIL and LOGIN_PASSWORD in .env');
     const skipOtp = otpChainTestsSkippedReason();
     test.skip(!!skipOtp, skipOtp);
@@ -482,7 +482,7 @@ test.describe('QA test matrix @regression', () => {
   // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
 
 
-  test('POST /auth/refresh : [13] rejects refresh with malformed token → 401', async ({}, testInfo) => {
+  test('[AUTH-REFRESH-008] : Malformed refresh token returns 401 Unauthorized → 401', async ({}, testInfo) => {
     const client = await createApiClient();
     try {
       const payload = { refreshToken: MALFORMED_REFRESH };
@@ -508,16 +508,16 @@ test.describe('QA test matrix @regression', () => {
   // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
 
 
-  test('GET /{PROTECTED_API_PATH} : [14] rejects access protected route with invalid JWT → 401', async ({}, testInfo) => {
-    test.skip(!env.PROTECTED_API_PATH, 'Set PROTECTED_API_PATH in .env (relative to BASE_URL, e.g. accounts/me)');
+  test('[MISC-PROT-001] : Invalid JWT on protected GET returns 401 Unauthorized → 401', async ({}, testInfo) => {
+    // Use configured protected path when present; otherwise fall back to a known auth-protected route.
+    const protectedPath = (env.PROTECTED_API_PATH || 'orgs/00000000-0000-0000-0000-000000000001/users').replace(/^\//, '');
     const invalidJwt =
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIwMDAwMDAwMC0wMDAwLTAwMDAtMDAwMC0wMDAwMDAwMDAwMDAiLCJleHAiOjk5fQ.invalid';
     const client = await createApiClient({
       Authorization: `Bearer ${invalidJwt}`
     });
     try {
-      const path = env.PROTECTED_API_PATH.replace(/^\//, '');
-      const response = await client.get(path);
+      const response = await client.get(protectedPath);
       let body;
       try {
         body = await response.json();
@@ -525,14 +525,14 @@ test.describe('QA test matrix @regression', () => {
         body = null;
       }
       await publishApiResponse(testInfo, {
-        urlHint: path,
+        urlHint: protectedPath,
         response,
-        path,
+        path: protectedPath,
         loginEmail: null,
         status: response.status(),
         statusText: response.statusText(),
         body: body || { _parseError: true },
-        requestPayload: { path }
+        requestPayload: { path: protectedPath }
       });
       expectHttpStatus(response, 401);
       expectJsonContentType(response);
@@ -551,7 +551,7 @@ test.describe('QA test matrix @regression', () => {
   // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
 
 
-  test('POST /auth/login : [15] returns tier 3 member login — branch context', async ({}, testInfo) => {
+  test('[AUTH-VERIFY-011] : Valid tier-3 member verify includes branch data → 200', async ({}, testInfo) => {
     test.skip(!env.TIER3_MEMBER_EMAIL, 'Set TIER3_MEMBER_EMAIL (e.g. t3.emp1@demo.com) and TIER3_MEMBER_PASSWORD or LOGIN_PASSWORD');
     const password = env.TIER3_MEMBER_PASSWORD || env.LOGIN_PASSWORD;
     test.skip(!password, 'Set TIER3_MEMBER_PASSWORD or LOGIN_PASSWORD');

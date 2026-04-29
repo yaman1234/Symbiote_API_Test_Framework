@@ -12,9 +12,9 @@ const { expectTasksListSuccessBody } = require('../../../../../helpers/assertion
 const { publishApiResponse } = require('../../../../../helpers/apiResponseReport');
 const { otpChainTestsSkippedReason } = require('../../../../../helpers/otpChainSkip');
 
-test.describe('List tasks @smoke @tasks', () => {
+test.describe('List tasks', () => {
   // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
-  test('GET /orgs/:orgId/branches/:branchId/tasks : returns task list with pagination and filters', async ({}, testInfo) => {
+  test('[TASKS-LIST-001] : Authorized owner lists tasks with pagination and filters → 2XX', async ({}, testInfo) => {
     const owner = getSeededAccountByKey('t1_owner');
     const email = env.TASKS_OWNER_EMAIL || env.USER_MGMT_OWNER_EMAIL || (owner && owner.email) || '';
     const password = env.TASKS_OWNER_PASSWORD || env.USER_MGMT_OWNER_PASSWORD || env.LOGIN_PASSWORD;

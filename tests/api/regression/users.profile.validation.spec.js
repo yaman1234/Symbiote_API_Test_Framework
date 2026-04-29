@@ -50,8 +50,8 @@ async function postCreate(client, session, payload, testInfo, urlHint) {
   return { res, body };
 }
 
-test.describe('Users profile validation @regression @users', () => {
-  test('POST /orgs/:orgId/users : rejects missing fullName as mandatory field', async ({}, testInfo) => {
+test.describe('Users profile validation', () => {
+  test('[ORGS-CREATE-013] : Mandatory create fields are enforced → 400', async ({}, testInfo) => {
     test.skip(!env.USER_CREATE_BRANCH_ID, 'Set USER_CREATE_BRANCH_ID');
     skipOtpChain();
 
@@ -78,7 +78,7 @@ test.describe('Users profile validation @regression @users', () => {
     }
   });
 
-  test('POST /orgs/:orgId/users : rejects creating branchRole OWNER via API', async ({}, testInfo) => {
+  test('[ORGS-CREATE-014] : Forbidden OWNER branchRole creation is rejected → 400', async ({}, testInfo) => {
     test.skip(!env.USER_CREATE_BRANCH_ID, 'Set USER_CREATE_BRANCH_ID');
     skipOtpChain();
 
@@ -105,7 +105,7 @@ test.describe('Users profile validation @regression @users', () => {
     }
   });
 
-  test('POST /orgs/:orgId/users : rejects supervisorOrgUserId when target is EMPLOYEE role', async ({}, testInfo) => {
+  test('[ORGS-CREATE-015] : Invalid supervisorOrgUserId for EMPLOYEE target is rejected → 400', async ({}, testInfo) => {
     test.skip(!env.USER_MGMT_EMPLOYEE_EMAIL, 'Set USER_MGMT_EMPLOYEE_EMAIL');
     test.skip(!env.USER_CREATE_BRANCH_ID, 'Set USER_CREATE_BRANCH_ID');
     const employeePassword = env.USER_MGMT_EMPLOYEE_PASSWORD || env.LOGIN_PASSWORD;
@@ -145,7 +145,7 @@ test.describe('Users profile validation @regression @users', () => {
     }
   });
 
-  test('PATCH /orgs/:orgId/users/:orgUserId : rejects missing fullName as mandatory field', async ({}, testInfo) => {
+  test('[ORGS-PATCH-002] : Missing fullName on patch returns 400 or 422 → 400', async ({}, testInfo) => {
     test.skip(!env.USER_CREATE_BRANCH_ID, 'Set USER_CREATE_BRANCH_ID');
     skipOtpChain();
 

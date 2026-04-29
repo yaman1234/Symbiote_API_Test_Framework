@@ -7,10 +7,10 @@ const { postLoginExpectOtpChallenge } = require('../../../../../helpers/authLogi
 const { publishApiResponse } = require('../../../../../helpers/apiResponseReport');
 const { otpChainTestsSkippedReason } = require('../../../../../helpers/otpChainSkip');
 
-test.describe('Verify OTP @smoke', () => {
+test.describe('Verify OTP', () => {
   // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
 
-  test('POST /auth/verify-otp : returns tokens after full login flow', async ({}, testInfo) => {
+  test('[AUTH-VERIFY-001] : Successful login-send-otp-verify flow returns tokens → 200', async ({}, testInfo) => {
     test.skip(
       !env.LOGIN_EMAIL || !env.LOGIN_PASSWORD,
       'Set LOGIN_EMAIL and LOGIN_PASSWORD in .env'

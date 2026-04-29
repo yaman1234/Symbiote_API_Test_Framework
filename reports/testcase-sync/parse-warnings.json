@@ -1,5 +1,48 @@
 {
-  "generatedAt": "2026-04-15T13:39:03.639Z",
-  "warningCount": 0,
-  "warnings": []
+  "generatedAt": "2026-04-29T14:38:16.572Z",
+  "warningCount": 6,
+  "warnings": [
+    {
+      "file": "Auth_forgot-password.md",
+      "tcHint": "AUTH-FORGOT-003",
+      "missingFields": [
+        "Checks"
+      ]
+    },
+    {
+      "file": "Auth_password-action-validate.md",
+      "tcHint": "AUTH-PACT-001",
+      "missingFields": [
+        "Checks"
+      ]
+    },
+    {
+      "file": "Auth_password-action-validate.md",
+      "tcHint": "AUTH-PACT-002",
+      "missingFields": [
+        "Checks"
+      ]
+    },
+    {
+      "file": "Auth_set-password.md",
+      "tcHint": "AUTH-SETPW-001",
+      "missingFields": [
+        "Checks"
+      ]
+    },
+    {
+      "file": "Auth_set-password.md",
+      "tcHint": "AUTH-SETPW-002",
+      "missingFields": [
+        "Checks"
+      ]
+    },
+    {
+      "file": "Auth_set-password.md",
+      "tcHint": "AUTH-SETPW-010",
+      "missingFields": [
+        "Checks"
+      ]
+    }
+  ]
 }

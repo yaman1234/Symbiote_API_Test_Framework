@@ -8,10 +8,10 @@ const { expectAuthValidationErrorBody } = require('../../../../../helpers/assert
 const { publishApiResponse } = require('../../../../../helpers/apiResponseReport');
 const { otpChainTestsSkippedReason } = require('../../../../../helpers/otpChainSkip');
 
-test.describe('Create org user @negative @users', () => {
+test.describe('Create org user', () => {
   // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
 
-  test('POST /orgs/:orgId/users : rejects POST without Authorization → 401', async ({}, testInfo) => {
+  test('[ORGS-CREATE-002] : Unauthorized create request returns 401 → 401', async ({}, testInfo) => {
     const client = await createApiClient();
     try {
       const path = 'orgs/00000000-0000-0000-0000-000000000001/users';
@@ -42,7 +42,7 @@ test.describe('Create org user @negative @users', () => {
   // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
 
 
-  test('POST /orgs/:orgId/users : rejects POST missing email → 422', async ({}, testInfo) => {
+  test('[ORGS-CREATE-003] : Missing email on create returns 422 Validation Error → 422', async ({}, testInfo) => {
     test.skip(!env.USER_MGMT_OWNER_EMAIL, 'Set USER_MGMT_OWNER_EMAIL');
     test.skip(!env.USER_CREATE_BRANCH_ID, 'Set USER_CREATE_BRANCH_ID');
     const password = env.USER_MGMT_OWNER_PASSWORD || env.LOGIN_PASSWORD;

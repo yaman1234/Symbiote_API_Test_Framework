@@ -16,6 +16,46 @@ const {
   path
 } = require('./shared');
 
+function cleanDescribeTitle(value) {
+  return String(value || '')
+    .replace(/\s*@\w+\b/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function fallbackEndpointNameFromPath(specPath) {
+  const base = path.basename(String(specPath || ''), '.spec.js');
+  return base.replace(/[._-]+/g, ' ').trim();
+}
+
+function buildEndpointNameCache() {
+  const cache = new Map();
+  const root = path.resolve(process.cwd(), 'tests', 'api');
+  if (!fs.existsSync(root)) return cache;
+
+  function walk(dirPath) {
+    const entries = fs.readdirSync(dirPath, { withFileTypes: true });
+    for (const entry of entries) {
+      const fullPath = path.join(dirPath, entry.name);
+      if (entry.isDirectory()) {
+        walk(fullPath);
+        continue;
+      }
+      if (!entry.isFile() || !fullPath.endsWith('.spec.js')) continue;
+      const relPath = normalizePathForCompare(path.relative(process.cwd(), fullPath));
+      const content = fs.readFileSync(fullPath, 'utf-8');
+      const describeMatch = content.match(/test\.describe\(\s*['"`]([^'"`]+)['"`]/);
+      const endpointName = cleanDescribeTitle(
+        describeMatch ? describeMatch[1] : fallbackEndpointNameFromPath(relPath)
+      );
+      cache.set(relPath, endpointName);
+    }
+  }
+
+  walk(root);
+  return cache;
+}
+
 function extractEndpointInfo(markdown) {
   const firstHeader = markdown.match(/^#\s+`([^`]+)`/m);
   const endpointLabel = firstHeader ? firstHeader[1].trim() : '';
@@ -94,7 +134,7 @@ function parseBlock(blockText, context) {
   };
 }
 
-function parseTestCaseFile(filePath) {
+function parseTestCaseFile(filePath, endpointNameCache) {
   const markdown = fs.readFileSync(filePath, 'utf-8');
   const { api, method, endpoint } = extractEndpointInfo(markdown);
   const warnings = [];
@@ -116,21 +156,23 @@ function parseTestCaseFile(filePath) {
     });
 
     if (!row.TC_ID) row.TC_ID = blockTitle;
+    const endpointName =
+      endpointNameCache.get(normalizePathForCompare(row.Spec_File)) ||
+      fallbackEndpointNameFromPath(row.Spec_File);
     rows.push({
       TC_ID: row.TC_ID,
-      API: api,
       Method: method,
-      Endpoint: endpoint,
+      EndPoint: endpoint,
+      Endpoint_Name: endpointName,
       Suite: row.Suite,
-      Spec_File: row.Spec_File,
       Scenario: row.Scenario,
       Expected: row.Expected,
       Checks: row.Checks,
-      Last_Status: '',
-      Last_Run_Time: '',
-      Last_Duration_ms: '',
-      Last_Error: '',
-      Last_Run_ID: ''
+      'Last Status': '',
+      'Last Run Time': '',
+      'Last API Response Time': '',
+      'Last Error': '',
+      Spec_File: row.Spec_File
     });
 
     if (warning) warnings.push(warning);
@@ -141,6 +183,7 @@ function parseTestCaseFile(filePath) {
 
 function main() {
   ensureDir(REPORT_DIR);
+  const endpointNameCache = buildEndpointNameCache();
   const testCaseFiles = fs
     .readdirSync(TESTCASES_DIR)
     .filter((f) => f.endsWith('.md') && f.toLowerCase() !== 'readme.md')
@@ -149,7 +192,7 @@ function main() {
   const rows = [];
   const warnings = [];
   for (const filePath of testCaseFiles) {
-    const parsed = parseTestCaseFile(filePath);
+    const parsed = parseTestCaseFile(filePath, endpointNameCache);
     rows.push(...parsed.rows);
     warnings.push(...parsed.warnings);
   }
@@ -178,11 +221,12 @@ function main() {
       if (!existing) return row;
       return {
         ...row,
-        Last_Status: existing.Last_Status || '',
-        Last_Run_Time: existing.Last_Run_Time || '',
-        Last_Duration_ms: existing.Last_Duration_ms || '',
-        Last_Error: existing.Last_Error || '',
-        Last_Run_ID: existing.Last_Run_ID || ''
+        Endpoint_Name: row.Endpoint_Name || existing.Endpoint_Name || '',
+        'Last Status': existing['Last Status'] || existing.Last_Status || '',
+        'Last Run Time': existing['Last Run Time'] || existing.Last_Run_Time || '',
+        'Last API Response Time':
+          existing['Last API Response Time'] || existing.Last_Duration_ms || '',
+        'Last Error': existing['Last Error'] || existing.Last_Error || ''
       };
     })
     .sort((a, b) => String(a.TC_ID).localeCompare(String(b.TC_ID)));

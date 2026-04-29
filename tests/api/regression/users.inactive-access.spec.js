@@ -16,8 +16,8 @@ function skipOtpChain() {
   test.skip(!!reason, reason || '');
 }
 
-test.describe('Inactive user access @regression @users', () => {
-  test('PATCH user status INACTIVE : blocks fresh login/session for that user', async ({}, testInfo) => {
+test.describe('Inactive user access', () => {
+  test('[ORGS-PATCH-003] : Inactive employee status blocks new session login → 200', async ({}, testInfo) => {
     test.skip(!env.USER_MGMT_OWNER_EMAIL, 'Set USER_MGMT_OWNER_EMAIL');
     test.skip(!env.USER_MGMT_EMPLOYEE_EMAIL, 'Set USER_MGMT_EMPLOYEE_EMAIL');
     const ownerPassword = env.USER_MGMT_OWNER_PASSWORD || env.LOGIN_PASSWORD;

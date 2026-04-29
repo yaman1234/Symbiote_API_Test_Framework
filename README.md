@@ -19,6 +19,16 @@ Playwright-driven API tests against Symbiote QA (JavaScript, no TypeScript). Thi
 
 ---
 
+## Latest updates (Apr 2026)
+
+- User regression expanded:
+  - `users.create.rules.spec.js` now includes create + update rule checks (role restrictions, payroll/modules restrictions, supervisor limits).
+  - `users.list.visibility.spec.js` now covers owner/supervisor/employee visibility, search behavior, employee isolation, and invalid filter rejection.
+- Regression commands and tags remain the same (`@regression`, `@users`).
+- Testcase workbook automation is active via `testcases:generate`, `testcases:sync`, and `testcases:refresh`.
+
+---
+
 ## Live test inventory
 
 **Auth — smoke**
@@ -116,53 +126,52 @@ Create `.env` from the template (PowerShell: `Copy-Item .env.example .env`) and 
 
 ---
 
-## Master test cases Excel workflow
+## How to generate/update `master_testcase.xlsx`
 
-The repository includes an automated pipeline to maintain `Master_TestCases.xlsx` for API test management.
+Use this when you add test cases or want latest execution status in Excel.
 
-### Workbook sheets
+> Note: the generated file name in this repo is `Master_TestCases.xlsx` (same workbook referred to here as `master_testcase.xlsx`).
 
-- `TestCases_Master` — one row per `TC_ID`, parsed from `testCases/*.md`.
-- `Run_Results_Raw` — append-only execution history from Playwright JSON output.
-- `Dashboard` — basic totals and latest-run snapshot.
-- `Unmapped_Results` — execution rows that could not be confidently mapped to a `TC_ID`.
-
-### Mapping logic (`TC_ID` join key)
-
-`testcases:sync` maps each Playwright test result to `TC_ID` using:
-
-1. Exact hint if test title contains `TC_ID`.
-2. Otherwise, same `Spec_File` + scenario similarity against `Scenario` text from markdown.
-3. Matrix marker boost for scenarios like `[1]`, `[2]`, etc.
-
-Rows that remain ambiguous or low-confidence are exported to `reports/testcase-sync/unmapped-results.json` and written into `Unmapped_Results`.
-
-### Generated artifacts
-
-- `Master_TestCases.xlsx`
-- `reports/json/results.json` (Playwright JSON reporter output)
-- `reports/testcase-sync/parse-warnings.json`
-- `reports/testcase-sync/unmapped-results.json`
-
-### End-to-end run
+### 1) Generate or rebuild workbook structure
 
 ```bash
 npm run testcases:generate
+```
+
+This parses `testCases/*.md` and creates/updates:
+- `TestCases_Master`
+- `Dashboard`
+- keeps historical `Run_Results_Raw` when present
+
+### 2) Run tests to produce latest JSON results
+
+```bash
 npm run test:api
+```
+
+This writes execution output to `reports/json/results.json`.
+
+### 3) Sync latest run results into workbook
+
+```bash
 npm run testcases:sync
 ```
 
-Or use a single command:
+This updates testcase status and appends run history in `Run_Results_Raw`.
+
+### One-command refresh
 
 ```bash
 npm run testcases:refresh
 ```
 
-### Troubleshooting
+Equivalent to: generate -> run tests -> sync.
 
-- **Workbook missing:** run `npm run testcases:generate` first.
-- **JSON report missing:** ensure tests were executed after enabling JSON reporter (`reports/json/results.json`).
-- **Too many unmapped rows:** include explicit `TC_ID` in test titles or tighten scenario wording in `testCases/*.md`.
+### Quick troubleshooting
+
+- Workbook not found -> run `npm run testcases:generate`
+- No run data to sync -> run tests first (`npm run test:api`)
+- Many unmapped rows -> check `reports/testcase-sync/unmapped-results.json` and align `TC_ID` / scenario text
 
 ---
 

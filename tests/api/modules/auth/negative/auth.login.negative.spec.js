@@ -17,7 +17,7 @@ const KNOWN_EMAIL = 't3.owner@demo.com';
 const WRONG_PASSWORD = 'DefinitelyWrong#NotReal99';
 const UNKNOWN_EMAIL = 'nonexistent.user@demo.com';
 
-test.describe('Login @negative', () => {
+test.describe('Login', () => {
   async function postLogin(payload, testInfo) {
     const client = await createApiClient();
     try {
@@ -41,7 +41,7 @@ test.describe('Login @negative', () => {
   // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
 
 
-  test('POST /auth/login : rejects wrong password → 401', async ({}, testInfo) => {
+  test('[AUTH-LOGIN-002] : Invalid password returns 401 Unauthorized → 401', async ({}, testInfo) => {
     const { response, body } = await postLogin(
       { email: KNOWN_EMAIL, password: WRONG_PASSWORD },
       testInfo
@@ -54,7 +54,7 @@ test.describe('Login @negative', () => {
   // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
 
 
-  test('POST /auth/login : rejects unknown email → 401', async ({}, testInfo) => {
+  test('[AUTH-LOGIN-003] : Unknown email returns 401 Unauthorized → 401', async ({}, testInfo) => {
     const { response, body } = await postLogin(
       { email: UNKNOWN_EMAIL, password: WRONG_PASSWORD },
       testInfo
@@ -67,7 +67,7 @@ test.describe('Login @negative', () => {
   // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
 
 
-  test('POST /auth/login : rejects missing email → 422', async ({}, testInfo) => {
+  test('[AUTH-LOGIN-004] : Missing email returns 422 Validation Error → 422', async ({}, testInfo) => {
     const { response, body } = await postLogin({ password: 'x' }, testInfo);
     expectHttpStatus(response, 422);
     expectJsonContentType(response);
@@ -77,7 +77,7 @@ test.describe('Login @negative', () => {
   // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
 
 
-  test('POST /auth/login : rejects missing password → 422', async ({}, testInfo) => {
+  test('[AUTH-LOGIN-005] : Missing password returns 422 Validation Error → 422', async ({}, testInfo) => {
     const { response, body } = await postLogin({ email: KNOWN_EMAIL }, testInfo);
     expectHttpStatus(response, 422);
     expectJsonContentType(response);
@@ -87,7 +87,7 @@ test.describe('Login @negative', () => {
   // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
 
 
-  test('POST /auth/login : rejects invalid email → 422', async ({}, testInfo) => {
+  test('[AUTH-LOGIN-006] : Invalid email format returns 422 Validation Error → 422', async ({}, testInfo) => {
     const { response, body } = await postLogin(
       { email: 'not-an-email', password: 'SomePassword1!' },
       testInfo
@@ -100,7 +100,7 @@ test.describe('Login @negative', () => {
   // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
 
 
-  test('POST /auth/login : rejects empty password → 422', async ({}, testInfo) => {
+  test('[AUTH-LOGIN-007] : Empty password returns 422 Validation Error → 422', async ({}, testInfo) => {
     const { response, body } = await postLogin(
       { email: KNOWN_EMAIL, password: '' },
       testInfo
@@ -113,7 +113,7 @@ test.describe('Login @negative', () => {
   /** Contract: padded + uppercase email succeeds once API trims before validation (not default smoke). */
   // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
 
-  test('POST /auth/login : Trims extra spaces in Email and accepts it', async ({}, testInfo) => {
+  test('[AUTH-LOGIN-008] : Trimmed email with extra spaces is accepted → 200', async ({}, testInfo) => {
     test.skip(!env.LOGIN_EMAIL || !env.LOGIN_PASSWORD, 'Set LOGIN_EMAIL and LOGIN_PASSWORD in .env');
 
     const messyEmail = `  ${env.LOGIN_EMAIL}   `;
@@ -141,7 +141,7 @@ test.describe('Login @negative', () => {
   });
   // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
 
-  test('POST /auth/login : Accepts uppercase email', async ({}, testInfo) => {
+  test('[AUTH-LOGIN-009] : Uppercase email is accepted → 200', async ({}, testInfo) => {
     test.skip(!env.LOGIN_EMAIL || !env.LOGIN_PASSWORD, 'Set LOGIN_EMAIL and LOGIN_PASSWORD in .env');
 
     const client = await createApiClient();

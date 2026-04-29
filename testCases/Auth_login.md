@@ -6,7 +6,7 @@
 
 - **TC_ID:** AUTH-LOGIN-001  
 - **Suite:** Smoke  
-- **Spec_File:** `tests/api/smoke/auth.login.spec.js`  
+- **Spec_File:** `tests/api/modules/auth/smoke/auth.login.spec.js`  
 - **Scenario:** Valid credentials → OTP challenge  
 - **Expected:** HTTP **200** (2xx), JSON  
 - **Checks:**
@@ -22,8 +22,8 @@
 
 - **TC_ID:** AUTH-LOGIN-002  
 - **Suite:** Negative  
-- **Spec_File:** `tests/api/negative/auth.login.negative.spec.js`  
-- **Scenario:** Wrong password  
+- **Spec_File:** `tests/api/modules/auth/negative/auth.login.negative.spec.js`  
+- **Scenario:** Invalid password returns 401 Unauthorized  
 - **Expected:** HTTP **401**, JSON  
 - **Checks:**
   - `expectHttpStatus` 401  
@@ -36,8 +36,8 @@
 
 - **TC_ID:** AUTH-LOGIN-003  
 - **Suite:** Negative  
-- **Spec_File:** `tests/api/negative/auth.login.negative.spec.js`  
-- **Scenario:** Unknown email  
+- **Spec_File:** `tests/api/modules/auth/negative/auth.login.negative.spec.js`  
+- **Scenario:** Unknown email returns 401 Unauthorized  
 - **Expected:** HTTP **401**, JSON  
 - **Checks:** Same as AUTH-LOGIN-002  
 
@@ -47,8 +47,8 @@
 
 - **TC_ID:** AUTH-LOGIN-004  
 - **Suite:** Negative  
-- **Spec_File:** `tests/api/negative/auth.login.negative.spec.js`  
-- **Scenario:** Missing email  
+- **Spec_File:** `tests/api/modules/auth/negative/auth.login.negative.spec.js`  
+- **Scenario:** Missing email returns 422 Validation Error  
 - **Expected:** HTTP **422**, JSON  
 - **Checks:**
   - `expectHttpStatus` 422  
@@ -61,8 +61,8 @@
 
 - **TC_ID:** AUTH-LOGIN-005  
 - **Suite:** Negative  
-- **Spec_File:** `tests/api/negative/auth.login.negative.spec.js`  
-- **Scenario:** Missing password  
+- **Spec_File:** `tests/api/modules/auth/negative/auth.login.negative.spec.js`  
+- **Scenario:** Missing password returns 422 Validation Error  
 - **Expected:** HTTP **422**, JSON  
 - **Checks:** Same as AUTH-LOGIN-004 pattern with **`password`** in details  
 
@@ -72,8 +72,8 @@
 
 - **TC_ID:** AUTH-LOGIN-006  
 - **Suite:** Negative  
-- **Spec_File:** `tests/api/negative/auth.login.negative.spec.js`  
-- **Scenario:** Invalid email format  
+- **Spec_File:** `tests/api/modules/auth/negative/auth.login.negative.spec.js`  
+- **Scenario:** Invalid email format returns 422 Validation Error  
 - **Expected:** HTTP **422**, JSON  
 - **Checks:** `expectAuthValidationErrorBody` (VALIDATION_ERROR + non-empty details; no single field pinned)  
 
@@ -83,8 +83,8 @@
 
 - **TC_ID:** AUTH-LOGIN-007  
 - **Suite:** Negative  
-- **Spec_File:** `tests/api/negative/auth.login.negative.spec.js`  
-- **Scenario:** Empty password  
+- **Spec_File:** `tests/api/modules/auth/negative/auth.login.negative.spec.js`  
+- **Scenario:** Empty password returns 422 Validation Error  
 - **Expected:** HTTP **422**, JSON  
 - **Checks:** Same as AUTH-LOGIN-006  
 
@@ -94,8 +94,8 @@
 
 - **TC_ID:** AUTH-LOGIN-008  
 - **Suite:** Negative  
-- **Spec_File:** `tests/api/negative/auth.login.negative.spec.js`  
-- **Scenario:** Padded + uppercase email (trim before lookup)  
+- **Spec_File:** `tests/api/modules/auth/negative/auth.login.negative.spec.js`  
+- **Scenario:** Trimmed email with extra spaces is accepted  
 - **Expected:** HTTP **200** if API trims email before validation  
 - **Checks:** Same success path as AUTH-LOGIN-001 (`expectSuccessStatus`, `expectJsonContentType`, `expectAuthLoginOtpSuccessBody`)  
 
@@ -105,8 +105,8 @@
 
 - **TC_ID:** AUTH-LOGIN-009  
 - **Suite:** Negative  
-- **Spec_File:** `tests/api/negative/auth.login.negative.spec.js`  
-- **Scenario:** Uppercase email (lowercase lookup)  
+- **Spec_File:** `tests/api/modules/auth/negative/auth.login.negative.spec.js`  
+- **Scenario:** Uppercase email is accepted  
 - **Expected:** HTTP **200**  
 - **Checks:** Same as AUTH-LOGIN-001  
 
@@ -117,7 +117,7 @@
 - **TC_ID:** AUTH-LOGIN-010  
 - **Suite:** Regression  
 - **Spec_File:** `tests/api/regression/qa-auth-matrix.spec.js`  
-- **Scenario:** [1] Valid seeded login  
+- **Scenario:** Valid seeded login succeeds  
 - **Expected:** HTTP **200**  
 - **Checks:** Same as AUTH-LOGIN-001  
 
@@ -128,7 +128,7 @@
 - **TC_ID:** AUTH-LOGIN-011  
 - **Suite:** Regression  
 - **Spec_File:** `tests/api/regression/qa-auth-matrix.spec.js`  
-- **Scenario:** [2] Uppercase email  
+- **Scenario:** Uppercase email login succeeds  
 - **Expected:** HTTP **200**  
 - **Checks:** Same as AUTH-LOGIN-001  
 
@@ -139,7 +139,7 @@
 - **TC_ID:** AUTH-LOGIN-012  
 - **Suite:** Regression  
 - **Spec_File:** `tests/api/regression/qa-auth-matrix.spec.js`  
-- **Scenario:** [3] Wrong password  
+- **Scenario:** Wrong password returns 401 Unauthorized  
 - **Expected:** HTTP **401**  
 - **Checks:** Same as AUTH-LOGIN-002  
 
@@ -150,6 +150,6 @@
 - **TC_ID:** AUTH-LOGIN-013  
 - **Suite:** Regression  
 - **Spec_File:** `tests/api/regression/qa-auth-matrix.spec.js`  
-- **Scenario:** [4] Unknown email  
+- **Scenario:** Unknown email returns 401 Unauthorized  
 - **Expected:** HTTP **401**  
 - **Checks:** Same as AUTH-LOGIN-002  

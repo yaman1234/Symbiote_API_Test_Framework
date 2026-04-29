@@ -14,9 +14,9 @@ const { otpChainTestsSkippedReason } = require('../../../../../helpers/otpChainS
 let assigneeId;
 let taskId;
 
-test.describe('List tasks @smoke @tasks', () => {
+test.describe('List tasks', () => {
   // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
-  test('GET /orgs/:orgId/branches/:branchId/tasks/board : returns task list in Board view', async ({}, testInfo) => {
+  test('[TASKS-LIST-006] : Board view task list returns successfully → 2XX', async ({}, testInfo) => {
     const owner = getSeededAccountByKey('t3_supervisor');
     const email = (owner && owner.email) || '';
     const password = env.LOGIN_PASSWORD;
@@ -71,7 +71,7 @@ test.describe('List tasks @smoke @tasks', () => {
   });
 
   // ADD ANOTHER TEST TO CHECK WITH QUERY PARAMETERS
-  test('GET /orgs/:orgId/branches/:branchId/tasks/board : returns task list in Board view with assigneeId query parameter', async ({}, testInfo) => {
+  test('[TASKS-LIST-007] : Filtered board view with assigneeId returns successfully → 2XX', async ({}, testInfo) => {
     const owner = getSeededAccountByKey('t3_supervisor');
     const email = (owner && owner.email) || '';
     const password = env.LOGIN_PASSWORD;
@@ -118,7 +118,7 @@ test.describe('List tasks @smoke @tasks', () => {
     }
   });
 
-  test('GET /orgs/:orgId/branches/:branchId/tasks/:taskId : returns task detail payload', async ({}, testInfo) => {
+  test('[TASKS-LIST-008] : Task detail endpoint returns selected task payload → 2XX', async ({}, testInfo) => {
     const owner = getSeededAccountByKey('t3_supervisor');
     const email = (owner && owner.email) || '';
     const password = env.LOGIN_PASSWORD;

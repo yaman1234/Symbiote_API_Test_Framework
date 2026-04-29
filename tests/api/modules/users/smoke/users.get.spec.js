@@ -11,10 +11,10 @@ const { expectOrgUserGetSuccessBody } = require('../../../../../helpers/assertio
 const { publishApiResponse } = require('../../../../../helpers/apiResponseReport');
 const { otpChainTestsSkippedReason } = require('../../../../../helpers/otpChainSkip');
 
-test.describe('Get org user @smoke @users', () => {
+test.describe('Get org user', () => {
   // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
 
-  test('GET /orgs/:orgId/users/:orgUserId : returns own org user details', async ({}, testInfo) => {
+  test('[ORGS-USERS-GET-001] : Authorized owner gets caller orgUserId details → 200', async ({}, testInfo) => {
     test.skip(!env.USER_MGMT_OWNER_EMAIL, 'Set USER_MGMT_OWNER_EMAIL (e.g. t1.owner@demo.com from qa-seeded-accounts.md)');
     const password = env.USER_MGMT_OWNER_PASSWORD || env.LOGIN_PASSWORD;
     test.skip(!password, 'Set USER_MGMT_OWNER_PASSWORD or LOGIN_PASSWORD');

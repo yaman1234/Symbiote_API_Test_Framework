@@ -14,7 +14,7 @@ const {
 const { publishApiResponse } = require('../../../../../helpers/apiResponseReport');
 const { otpChainTestsSkippedReason } = require('../../../../../helpers/otpChainSkip');
 
-test.describe('Verify OTP @negative', () => {
+test.describe('Verify OTP', () => {
   async function postVerifyOtp(payload, testInfo, loginEmail) {
     const client = await createApiClient();
     try {
@@ -37,7 +37,7 @@ test.describe('Verify OTP @negative', () => {
 
   // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
 
-  test('POST /auth/verify-otp : rejects OTP not generated → 400', async ({}, testInfo) => {
+  test('[AUTH-VERIFY-002] : Missing OTP generation returns 400 Bad Request → 400', async ({}, testInfo) => {
     test.skip(!env.LOGIN_EMAIL || !env.LOGIN_PASSWORD, 'Set LOGIN_EMAIL and LOGIN_PASSWORD in .env');
     const client = await createApiClient();
     let loginAttemptId;
@@ -62,7 +62,7 @@ test.describe('Verify OTP @negative', () => {
   // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
 
 
-  test('POST /auth/verify-otp : rejects invalid OTP → 401', async ({}, testInfo) => {
+  test('[AUTH-VERIFY-003] : Invalid OTP returns 401 Unauthorized → 401', async ({}, testInfo) => {
     test.skip(!env.LOGIN_EMAIL || !env.LOGIN_PASSWORD, 'Set LOGIN_EMAIL and LOGIN_PASSWORD in .env');
     const skipOtp = otpChainTestsSkippedReason();
     test.skip(!!skipOtp, skipOtp);
@@ -97,7 +97,7 @@ test.describe('Verify OTP @negative', () => {
   // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
 
 
-  test('POST /auth/verify-otp : rejects missing loginAttemptId → 422', async ({}, testInfo) => {
+  test('[AUTH-VERIFY-004] : Missing loginAttemptId returns 422 Validation Error → 422', async ({}, testInfo) => {
     const { response, body } = await postVerifyOtp({ otp: '111111' }, testInfo, null);
     expectHttpStatus(response, 422);
     expectJsonContentType(response);
@@ -107,7 +107,7 @@ test.describe('Verify OTP @negative', () => {
   // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
 
 
-  test('POST /auth/verify-otp : rejects missing otp → 422', async ({}, testInfo) => {
+  test('[AUTH-VERIFY-005] : Missing otp returns 422 Validation Error → 422', async ({}, testInfo) => {
     test.skip(!env.LOGIN_EMAIL || !env.LOGIN_PASSWORD, 'Set LOGIN_EMAIL and LOGIN_PASSWORD in .env');
     const client = await createApiClient();
     let loginAttemptId;
@@ -130,7 +130,7 @@ test.describe('Verify OTP @negative', () => {
   // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
 
 
-  test('POST /auth/verify-otp : rejects OTP already used → 400', async ({}, testInfo) => {
+  test('[AUTH-VERIFY-006] : Reused OTP attempt returns 400 Bad Request → 400', async ({}, testInfo) => {
     test.skip(!env.LOGIN_EMAIL || !env.LOGIN_PASSWORD, 'Set LOGIN_EMAIL and LOGIN_PASSWORD in .env');
     const skipOtp = otpChainTestsSkippedReason();
     test.skip(!!skipOtp, skipOtp);

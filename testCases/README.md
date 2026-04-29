@@ -7,7 +7,7 @@ Each **`Module_endpoint.md`** file documents coverage for one endpoint.
 1. **TC_ID** — Stable id  
 2. **Suite** — Smoke | Negative | Regression  
 3. **Spec_File** — Playwright spec path  
-4. **Scenario** — Short description  
+4. **Scenario** — Short adjective-first description (for example: `Valid login returns OTP challenge`)  
 5. **Expected** — HTTP / outcome  
 6. **Checks** — Bullet list of what the test asserts  
 

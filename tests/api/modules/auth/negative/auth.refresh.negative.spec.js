@@ -10,7 +10,7 @@ const { expectAuthRefreshInvalidBody } = require('../../../../../helpers/asserti
 const { publishApiResponse } = require('../../../../../helpers/apiResponseReport');
 const { otpChainTestsSkippedReason } = require('../../../../../helpers/otpChainSkip');
 
-test.describe('Refresh token @negative', () => {
+test.describe('Refresh token', () => {
   async function postRefresh(testInfo, { data = {}, extraHeaders = {}, loginEmail } = {}) {
     const client = await createApiClient(extraHeaders);
     try {
@@ -34,7 +34,7 @@ test.describe('Refresh token @negative', () => {
   // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
 
 
-  test('POST /auth/refresh : rejects no refreshToken in body (and no cookie) → 401', async ({}, testInfo) => {
+  test('[AUTH-REFRESH-002] : Missing refresh token returns 401 Unauthorized → 401', async ({}, testInfo) => {
     const { response, body } = await postRefresh(testInfo, { data: {}, loginEmail: null });
     expectHttpStatus(response, 401);
     expectJsonContentType(response);
@@ -44,7 +44,7 @@ test.describe('Refresh token @negative', () => {
   // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
 
 
-  test('POST /auth/refresh : rejects malformed refresh token (not tokenId.secret) → 401', async ({}, testInfo) => {
+  test('[AUTH-REFRESH-003] : Malformed refresh token returns 401 Unauthorized → 401', async ({}, testInfo) => {
     const { response, body } = await postRefresh(testInfo, {
       data: { refreshToken: 'not-a-valid-format' },
       loginEmail: null
@@ -57,7 +57,7 @@ test.describe('Refresh token @negative', () => {
   // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
 
 
-  test('POST /auth/refresh : rejects well-formed but unknown session → 401', async ({}, testInfo) => {
+  test('[AUTH-REFRESH-004] : Unknown refresh token returns 401 Unauthorized → 401', async ({}, testInfo) => {
     const { response, body } = await postRefresh(testInfo, {
       data: { refreshToken: '00000000-0000-0000-0000-000000000000.fake-secret-part' },
       loginEmail: null
@@ -70,7 +70,7 @@ test.describe('Refresh token @negative', () => {
   // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
 
 
-  test('POST /auth/refresh : rejects reusing refresh token after rotation → 401', async ({}, testInfo) => {
+  test('[AUTH-REFRESH-005] : Reused refresh token after rotation returns 401 Unauthorized → 200', async ({}, testInfo) => {
     test.skip(!env.LOGIN_EMAIL || !env.LOGIN_PASSWORD, 'Set LOGIN_EMAIL and LOGIN_PASSWORD in .env');
     const skipOtp = otpChainTestsSkippedReason();
     test.skip(!!skipOtp, skipOtp);

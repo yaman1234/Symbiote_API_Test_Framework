@@ -8,7 +8,7 @@ const {
 } = require('../../../../../helpers/assertions.auth');
 const { publishApiResponse } = require('../../../../../helpers/apiResponseReport');
 
-test.describe('Send OTP @negative', () => {
+test.describe('Send OTP', () => {
   async function loginAttemptId() {
     if (!env.LOGIN_EMAIL || !env.LOGIN_PASSWORD) return null;
     const client = await createApiClient();
@@ -46,7 +46,7 @@ test.describe('Send OTP @negative', () => {
   // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
 
 
-  test('POST /auth/send-otp : rejects missing loginAttemptId → 422', async ({}, testInfo) => {
+  test('[AUTH-SENDOTP-002] : Missing loginAttemptId returns 422 Validation Error → 422', async ({}, testInfo) => {
     const { response, body } = await postSendOtp({ method: 'EMAIL' }, testInfo, null);
     expectHttpStatus(response, 422);
     expectJsonContentType(response);
@@ -56,7 +56,7 @@ test.describe('Send OTP @negative', () => {
   // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
 
 
-  test('POST /auth/send-otp : rejects empty loginAttemptId → 422', async ({}, testInfo) => {
+  test('[AUTH-SENDOTP-003] : Empty loginAttemptId returns 422 Validation Error → 422', async ({}, testInfo) => {
     const { response, body } = await postSendOtp(
       { loginAttemptId: '', method: 'EMAIL' },
       testInfo,
@@ -70,7 +70,7 @@ test.describe('Send OTP @negative', () => {
   // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
 
 
-  test('POST /auth/send-otp : rejects SMS not supported → 400', async ({}, testInfo) => {
+  test('[AUTH-SENDOTP-004] : Unsupported SMS method returns 400 Bad Request → 400', async ({}, testInfo) => {
     test.skip(!env.LOGIN_EMAIL || !env.LOGIN_PASSWORD, 'Set LOGIN_EMAIL and LOGIN_PASSWORD in .env');
     const id = await loginAttemptId();
     expect(id).toBeTruthy();
@@ -90,7 +90,7 @@ test.describe('Send OTP @negative', () => {
   // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
 
 
-  test('POST /auth/send-otp : rejects invalid loginAttemptId → 400', async ({}, testInfo) => {
+  test('[AUTH-SENDOTP-005] : Invalid loginAttemptId returns 400 Bad Request → 400', async ({}, testInfo) => {
     const { response, body } = await postSendOtp(
       { loginAttemptId: '00000000-0000-0000-0000-000000000000', method: 'EMAIL' },
       testInfo,

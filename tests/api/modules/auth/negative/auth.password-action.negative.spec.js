@@ -7,10 +7,10 @@ const { expectJsonContentType, expectHttpStatus } = require('../../../../../help
 const { expectAuthValidationErrorBody, expectAuthPasswordActionBadRequestBody } = require('../../../../../helpers/assertions.auth');
 const { publishApiResponse } = require('../../../../../helpers/apiResponseReport');
 
-test.describe('Password action validate @negative @auth', () => {
+test.describe('Password action validate', () => {
   // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
 
-  test('POST /auth/password-action : rejects POST without token → 422', async ({}, testInfo) => {
+  test('[AUTH-PACT-001] : Missing token returns 422 Validation Error → 422', async ({}, testInfo) => {
     const client = await createApiClient();
     try {
       const res = await client.post('auth/password-action/validate', { data: {} });
@@ -35,7 +35,7 @@ test.describe('Password action validate @negative @auth', () => {
   // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
 
 
-  test('POST /auth/password-action : rejects POST with invalid / unknown token → 400', async ({}, testInfo) => {
+  test('[AUTH-PACT-002] : Invalid or unknown token returns 400 Bad Request → 400', async ({}, testInfo) => {
     const client = await createApiClient();
     try {
       const payload = {

@@ -7,10 +7,10 @@ const { expectJsonContentType, expectHttpStatus } = require('../../../../../help
 const { expectAuthValidationErrorBody } = require('../../../../../helpers/assertions.auth');
 const { publishApiResponse } = require('../../../../../helpers/apiResponseReport');
 
-test.describe('Forgot password @negative @auth', () => {
+test.describe('Forgot password', () => {
   // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
 
-  test('POST /auth/forgot-password : rejects POST without email → 422', async ({}, testInfo) => {
+  test('[AUTH-FORGOT-003] : Missing email returns 422 Validation Error → 422', async ({}, testInfo) => {
     const client = await createApiClient();
     try {
       const res = await client.post('auth/forgot-password', { data: {} });

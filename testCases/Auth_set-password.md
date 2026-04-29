@@ -8,8 +8,8 @@ Sets or resets password using a valid password-action token. **Consumes** the to
 
 - **TC_ID:** AUTH-SETPW-001  
 - **Suite:** Negative  
-- **Spec_File:** `tests/api/negative/auth.set-password.negative.spec.js`  
-- **Scenario:** Weak `password` (fails DTO / policy)  
+- **Spec_File:** `tests/api/modules/auth/negative/auth.set-password.negative.spec.js`  
+- **Scenario:** Weak password returns 422 Validation Error  
 - **Expected:** HTTP **422**, `VALIDATION_ERROR`  
 
 ---
@@ -18,8 +18,8 @@ Sets or resets password using a valid password-action token. **Consumes** the to
 
 - **TC_ID:** AUTH-SETPW-002  
 - **Suite:** Negative  
-- **Spec_File:** `tests/api/negative/auth.set-password.negative.spec.js`  
-- **Scenario:** `password` ≠ `confirmPassword` with **valid** token from env  
+- **Spec_File:** `tests/api/modules/auth/negative/auth.set-password.negative.spec.js`  
+- **Scenario:** Mismatched passwords return 400 Bad Request  
 - **Expected:** HTTP **400**, *Passwords do not match.*  
 - **Env:** `PASSWORD_ACTION_TOKEN_RAW` (optional; test skips if unset)  
 
@@ -29,7 +29,7 @@ Sets or resets password using a valid password-action token. **Consumes** the to
 
 - **TC_ID:** AUTH-SETPW-010  
 - **Suite:** Regression  
-- **Spec_File:** `tests/api/smoke/auth.password-action.flow.spec.js`  
-- **Scenario:** After successful set-password, same token cannot validate again  
+- **Spec_File:** `tests/api/modules/auth/smoke/auth.password-action.flow.spec.js`  
+- **Scenario:** Consumed token cannot be validated again  
 - **Expected:** HTTP **400**, *This link has already been used.*  
 - **Env:** Same as AUTH-PACT-010 (token consumed in flow)  
