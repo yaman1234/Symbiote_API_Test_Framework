@@ -12,6 +12,8 @@ const { publishApiResponse } = require('../../../../../helpers/apiResponseReport
 const { otpChainTestsSkippedReason } = require('../../../../../helpers/otpChainSkip');
 
 let assigneeId;
+let priorityId;
+let taskTitleSeed;
 let taskId;
 
 test.describe('List tasks', () => {
@@ -43,8 +45,10 @@ test.describe('List tasks', () => {
       const body = await res.json();
       const firstTaskWithAssignee = (body?.data?.columns || [])
         .flatMap((column) => (Array.isArray(column?.tasks) ? column.tasks : []))
-        .find((task) => task?.assignee?.id);
+        .find((task) => task?.assignee?.id && task?.priority?.id);
       assigneeId = firstTaskWithAssignee?.assignee?.id;
+      priorityId = firstTaskWithAssignee?.priority?.id;
+      taskTitleSeed = String(firstTaskWithAssignee?.title || '').slice(0, 12);
       taskId = firstTaskWithAssignee?.id;
 
       await publishApiResponse(testInfo, {
@@ -156,6 +160,57 @@ test.describe('List tasks', () => {
         nonEmptyPaths: [
           'data.id',
           'data.title'
+        ]
+      });
+    } finally {
+      await client.dispose();
+    }
+  });
+
+  test('[TASKS-BOARD-002] : Board view with all supported query params returns successfully → 2XX', async ({}, testInfo) => {
+    const owner = getSeededAccountByKey('t3_supervisor');
+    const email = (owner && owner.email) || '';
+    const password = env.LOGIN_PASSWORD;
+
+    test.skip(!email, 'Seeded owner t3_supervisor email not found');
+    test.skip(!password, 'Set TASKS_OWNER_PASSWORD or LOGIN_PASSWORD');
+    test.skip(!env.TASKS_BRANCH_ID, 'Set TASKS_BRANCH_ID for tasks list route');
+    test.skip(!assigneeId || !priorityId, 'No assigneeId/priorityId available from board response');
+    const skipOtp = otpChainTestsSkippedReason();
+    test.skip(!!skipOtp, skipOtp);
+
+    const client = await createApiClient();
+    try {
+      const session = await loginWithOtp(client, { email, password, otp: env.VERIFY_OTP });
+      test.skip(!session.ok, session.ok ? '' : `OTP login failed at ${session.step}`);
+
+      const path = `orgs/${session.orgId}/branches/${env.TASKS_BRANCH_ID}/tasks/board`;
+      const params = {
+        q: taskTitleSeed || 'task',
+        assigneeId,
+        priorityId,
+        includeSubtasks: 'true'
+      };
+      const res = await client.get(path, {
+        headers: { Authorization: `Bearer ${session.accessToken}` },
+        params
+      });
+      const body = await res.json();
+      await publishApiResponse(testInfo, {
+        urlHint: 'tasks/board-all-query-params',
+        response: res,
+        loginEmail: session.loginEmail,
+        status: res.status(),
+        statusText: res.statusText(),
+        body,
+        requestPayload: { path, query: params }
+      });
+      expectSuccessStatus(res, body);
+      expectJsonContentType(res);
+      expectJsonSuccessBody(body, {
+        message: 'Task board fetched.',
+        nonEmptyPaths: [
+          'data.columns'
         ]
       });
     } finally {

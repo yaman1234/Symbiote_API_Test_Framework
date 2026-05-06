@@ -24,6 +24,12 @@ async function createApiClient(extraHeaders = {}) {
     async patch(path, options = {}) {
       return context.patch(path, options);
     },
+    async put(path, options = {}) {
+      return context.put(path, options);
+    },
+    async delete(path, options = {}) {
+      return context.delete(path, options);
+    },
     async dispose() {
       await context.dispose();
     }

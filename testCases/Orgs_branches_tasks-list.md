@@ -134,3 +134,32 @@ Lists tasks for branch-scoped task boards/report views with pagination and filte
 - **Scenario:** Forbidden employee cross-branch task list request is rejected  
 - **Expected:** HTTP **4xx**  
 - **Checks:** Employee token requests another branch tasks; response must be JSON error envelope with non-empty `error.code` and `error.key`  
+
+---
+
+## TASKS-LIST-011
+
+- **TC_ID:** TASKS-LIST-011  
+- **Suite:** Negative  
+- **Spec_File:** `tests/api/modules/tasks/negative/tasks.list.negative.spec.js`  
+- **Scenario:** Tasks list rejects pageSize above API maximum (100)  
+- **Expected:** HTTP **422** or **400**; JSON error envelope  
+- **Checks:**
+  - `GET orgs/{orgId}/branches/{branchId}/tasks` with `pageSize=101`
+  - `expectHttpStatus` 422 or 400
+  - `expectJsonContentType`
+  - `expectJsonErrorBody` with `success=false`, non-empty `error.code`
+
+---
+
+## TASKS-LIST-012
+
+- **TC_ID:** TASKS-LIST-012  
+- **Suite:** Smoke  
+- **Spec_File:** `tests/api/modules/tasks/smoke/tasks.list.spec.js`  
+- **Scenario:** Authorized owner lists tasks with all supported query parameters in one request  
+- **Expected:** HTTP **2xx**; JSON success list envelope  
+- **Checks:**
+  - Preload `GET .../tasks/board` to discover valid `statusId`, `priorityId`, `assigneeId`, and a task `startAt`
+  - `GET orgs/{orgId}/branches/{branchId}/tasks` with `q`, `statusId`, `priorityId`, `assigneeId`, `from`, `to`, `page`, `pageSize`, `sort`, `order`
+  - `expectSuccessStatus`, `expectJsonContentType`, `expectTasksListSuccessBody`

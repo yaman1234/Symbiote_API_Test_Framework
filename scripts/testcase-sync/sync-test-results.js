@@ -101,6 +101,22 @@ function inferTcId(resultRow, candidates) {
   return { tcId: best.tcId, confidence: best.score, reason: 'Scenario_similarity' };
 }
 
+function getNepalTimestamp() {
+  const now = new Date();
+  const dtf = new Intl.DateTimeFormat('sv-SE', {
+    timeZone: 'Asia/Kathmandu',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false
+  });
+  // sv-SE gives stable sortable format: YYYY-MM-DD HH:mm:ss
+  return `${dtf.format(now)} NPT`;
+}
+
 function main() {
   ensureDir(REPORT_DIR);
 
@@ -122,7 +138,7 @@ function main() {
   const reportJson = JSON.parse(fs.readFileSync(PLAYWRIGHT_JSON_PATH, 'utf-8'));
   const flatResults = flattenPlaywrightResults(reportJson);
   const runId = process.env.RUN_ID || process.env.BUILD_ID || crypto.randomUUID();
-  const timestamp = new Date().toISOString();
+  const timestamp = getNepalTimestamp();
 
   const bySpecFile = new Map();
   for (const row of masterRows) {

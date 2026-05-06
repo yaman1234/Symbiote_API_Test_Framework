@@ -237,7 +237,8 @@ function main() {
   writeSheetFromRows(workbook, 'Run_Results_Raw', existingRunRawRows, RUN_RAW_COLUMNS);
   buildDashboardSheet(workbook, mergedRows, existingRunRawRows);
 
-  XLSX.writeFile(workbook, MASTER_XLSX_PATH);
+  const outputPath = process.env.MASTER_XLSX_OUTPUT || MASTER_XLSX_PATH;
+  XLSX.writeFile(workbook, outputPath);
 
   const warningPath = path.join(REPORT_DIR, 'parse-warnings.json');
   fs.writeFileSync(
@@ -254,7 +255,7 @@ function main() {
     'utf-8'
   );
 
-  console.log(`Master workbook updated: ${MASTER_XLSX_PATH}`);
+  console.log(`Master workbook updated: ${outputPath}`);
   console.log(`Test cases parsed: ${mergedRows.length}`);
   console.log(`Parse warnings: ${warnings.length} (${warningPath})`);
 }
