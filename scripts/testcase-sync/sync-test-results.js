@@ -3,21 +3,19 @@ const {
   MASTER_XLSX_PATH,
   REPORT_DIR,
   PLAYWRIGHT_JSON_PATH,
-  MASTER_COLUMNS,
-  RUN_RAW_COLUMNS,
   ensureDir,
-  readWorkbookIfExists,
-  readSheetAsRows,
-  writeSheetFromRows,
   normalizePathForCompare,
   normalizeText,
   tokenSimilarity,
   getMatrixMarker,
-  buildDashboardSheet,
-  XLSX,
   fs,
   path
 } = require('./shared');
+const {
+  readMasterRowsFromFile,
+  readRunRawRowsFromFile,
+  writeMasterWorkbook
+} = require('./master-workbook');
 
 function collectSpecEntries(node, entries = []) {
   if (!node || typeof node !== 'object') return entries;
@@ -117,7 +115,7 @@ function getNepalTimestamp() {
   return `${dtf.format(now)} NPT`;
 }
 
-function main() {
+async function main() {
   ensureDir(REPORT_DIR);
 
   if (!fs.existsSync(MASTER_XLSX_PATH)) {
@@ -131,9 +129,8 @@ function main() {
     );
   }
 
-  const workbook = readWorkbookIfExists(MASTER_XLSX_PATH);
-  const masterRows = readSheetAsRows(workbook, 'TestCases_Master');
-  const priorRunRows = readSheetAsRows(workbook, 'Run_Results_Raw');
+  const masterRows = await readMasterRowsFromFile(MASTER_XLSX_PATH);
+  const priorRunRows = await readRunRawRowsFromFile(MASTER_XLSX_PATH);
 
   const reportJson = JSON.parse(fs.readFileSync(PLAYWRIGHT_JSON_PATH, 'utf-8'));
   const flatResults = flattenPlaywrightResults(reportJson);
@@ -219,10 +216,6 @@ function main() {
     };
   });
 
-  writeSheetFromRows(workbook, 'TestCases_Master', updatedMasterRows, MASTER_COLUMNS);
-  writeSheetFromRows(workbook, 'Run_Results_Raw', mergedRunRows, RUN_RAW_COLUMNS);
-  buildDashboardSheet(workbook, updatedMasterRows, mergedRunRows);
-
   const unmappedSheetRows = unmapped.map((u) => ({
     Run_ID: u.runId,
     Timestamp: u.timestamp,
@@ -232,16 +225,12 @@ function main() {
     Reason: u.reason,
     Confidence: u.confidence
   }));
-  const unmappedSheet = XLSX.utils.json_to_sheet(unmappedSheetRows, {
-    header: ['Run_ID', 'Timestamp', 'Spec_File', 'Test_Title', 'Status', 'Reason', 'Confidence']
-  });
-  if (workbook.SheetNames.includes('Unmapped_Results')) {
-    workbook.Sheets.Unmapped_Results = unmappedSheet;
-  } else {
-    XLSX.utils.book_append_sheet(workbook, unmappedSheet, 'Unmapped_Results');
-  }
 
-  XLSX.writeFile(workbook, MASTER_XLSX_PATH);
+  await writeMasterWorkbook(MASTER_XLSX_PATH, {
+    masterRows: updatedMasterRows,
+    runRows: mergedRunRows,
+    unmappedRows: unmappedSheetRows
+  });
 
   const unmappedPath = path.join(REPORT_DIR, 'unmapped-results.json');
   fs.writeFileSync(
@@ -265,4 +254,7 @@ function main() {
   console.log(`Unmapped results: ${unmapped.length} (${unmappedPath})`);
 }
 
-main();
+main().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});

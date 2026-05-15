@@ -10,6 +10,14 @@ This review aligns current automated test cases with role behavior documented in
 - `User Management API - Create and Update User.docx`
 - `Task Management API.docx`
 
+## Canonical order for test cases and Excel
+
+Automated testcase markdown and `Master_TestCases.xlsx` follow **the same sequence as the reviewed product docs**: Authentication → User Management → Task Management, then misc (protected route) and template.
+
+- **Source of truth:** [`scripts/testcase-sync/testcase-order.js`](../scripts/testcase-sync/testcase-order.js) (`TESTCASE_MD_ORDER`)
+- **Human index:** [`testCases/README.md`](../testCases/README.md)
+- **Workbook layout:** `npm run testcases:generate` merges markdown in that order. Module tabs (Auth, Users, Tasks, Regression) group rows by `Spec_File`; within each tab, endpoints stay in **first-seen document order**, with **one blank Excel row after each endpoint** for separation.
+
 ## What is already covered well
 
 - Owner, supervisor, and employee visibility checks for `GET /orgs/:orgId/users`.

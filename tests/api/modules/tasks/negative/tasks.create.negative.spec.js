@@ -10,6 +10,7 @@ const { loginWithOtp } = require('../../../../../helpers/authSession');
 const { getSeededAccountByKey } = require('../../../../../helpers/testData');
 const { publishApiResponse } = require('../../../../../helpers/apiResponseReport');
 const { otpChainTestsSkippedReason } = require('../../../../../helpers/otpChainSkip');
+const { resolveTasksBranchId, resolveTaskCreateIds } = require('../../../../../helpers/tasksContext');
 
 test.describe('Create task @tasks', () => {
   const owner = getSeededAccountByKey('t1_owner');
@@ -27,31 +28,21 @@ test.describe('Create task @tasks', () => {
   test.beforeAll(async () => {
     test.skip(!email, 'Set TASKS_OWNER_EMAIL or USER_MGMT_OWNER_EMAIL');
     test.skip(!password, 'Set TASKS_OWNER_PASSWORD or LOGIN_PASSWORD');
-    test.skip(!env.TASKS_BRANCH_ID, 'Set TASKS_BRANCH_ID for tasks routes');
     const skipOtp = otpChainTestsSkippedReason();
     test.skip(!!skipOtp, skipOtp);
 
     client = await createApiClient();
     session = await loginWithOtp(client, { email, password, otp: env.VERIFY_OTP });
     test.skip(!session.ok, session.ok ? '' : `OTP login failed at ${session.step}`);
-    branchId = env.TASKS_BRANCH_ID || session.branchId || '';
+    branchId = resolveTasksBranchId(env.TASKS_BRANCH_ID, session.branchId);
     test.skip(!branchId, 'No branch id available for task create tests');
 
-    const boardPath = `orgs/${session.orgId}/branches/${branchId}/tasks/board`;
-    const boardRes = await client.get(boardPath, {
-      headers: { Authorization: `Bearer ${session.accessToken}` }
-    });
-    const boardBody = await boardRes.json();
-    test.skip(!boardRes.ok(), `Board preload failed: HTTP ${boardRes.status()}`);
-    const firstTask = (boardBody?.data?.columns || [])
-      .flatMap((column) => (Array.isArray(column?.tasks) ? column.tasks : []))
-      .find((task) => task?.status?.id && task?.priority?.id);
-    test.skip(!firstTask, 'No board task available to derive status/priority');
+    const ids = await resolveTaskCreateIds(client, session, branchId);
+    test.skip(!ids.ok, ids.reason || 'Could not resolve status/priority/assignee for create tests');
 
-    validStatusId = firstTask.status.id;
-    validPriorityId = firstTask.priority.id;
-    validAssigneeId = firstTask?.assignee?.id || session.orgUserId;
-    test.skip(!validAssigneeId, 'No assigneeId available (task assignee or orgUserId)');
+    validStatusId = ids.statusId;
+    validPriorityId = ids.priorityId;
+    validAssigneeId = ids.assigneeId;
   });
 
   test.afterAll(async () => {

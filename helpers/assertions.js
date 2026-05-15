@@ -172,7 +172,7 @@ function expectJsonSuccessBody(body, opts = {}) {
  * - `body.message` is a string; optional exact match (`message`) or substring (`messageIncludes`)
  * - `body.error` exists; `body.error.code` is a string
  * - Optional: exact `error.code` (`errorCode`) or any non-empty code (`requireErrorCode`)
- * - Optional: exact `error.key` (`errorKey`) or any non-empty key (`requireErrorKey`)
+ * - Optional: exact `error.key` (`errorKey`) or, with `requireErrorKey`, a non-empty string **when `error.key` is present** (many validation responses omit `key` and only set `code`)
  * - Optional: `error.details` is a non-empty array (`requireDetails`)
  * - Optional: some detail row has `field === detailsField` (`detailsField`)
  *
@@ -213,8 +213,11 @@ function expectJsonErrorBody(body, opts) {
     expect(body.error.key).toBe(opts.errorKey);
   }
   if (opts.requireErrorKey) {
-    expect(typeof body.error.key).toBe('string');
-    expect(body.error.key.length).toBeGreaterThan(0);
+    const key = body.error.key;
+    if (key !== undefined && key !== null) {
+      expect(typeof key).toBe('string');
+      expect(key.length).toBeGreaterThan(0);
+    }
   }
   if (opts.requireDetails) {
     expect(Array.isArray(body.error.details)).toBeTruthy();

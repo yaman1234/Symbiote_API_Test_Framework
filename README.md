@@ -1,303 +1,113 @@
 # Symbiote API Testing Framework
 
-Playwright-driven API tests against Symbiote QA (JavaScript, no TypeScript). This README is the main map for running tests, configuring `.env`, and extending the suite.
+Playwright API tests (JavaScript) against Symbiote QA. Config: `.env` (copy from [`.env.example`](.env.example)) → [`config/env.js`](config/env.js). **`BASE_URL` must end with `/`** (normalized in code). Auth flow in tests: **login → send-otp → verify-otp** via [`helpers/authSession.js`](helpers/authSession.js).
 
----
-
-## What this project covers
-
-| Area | Role |
-|------|------|
-| **Smoke (`@smoke`)** | Fast happy paths: auth (login → OTP chain → refresh, forgot-password), user-management reads, create, and create → PATCH → GET user update flow. |
-| **Negative (`@negative`)** | Invalid input and error envelopes (4xx/401) for auth and org user routes. |
-| **Regression (`@regression`)** | QA auth matrix (15 scenarios) and list-users visibility (owner / employee / supervisor). |
-| **User management (`@users`)** | Subset tag: `GET/POST/PATCH /orgs/:orgId/users`, `GET /orgs/:orgId/users/:orgUserId`, `GET /orgs/:orgId/users/options`, and related negatives/visibility. |
-
-**Contract style:** Symbiote JSON envelopes — `success`, `statusCode`, `message`, and for errors `error.code`, `error.key`, optional `error.details`. Shared checks live in `helpers/assertions.js` and `helpers/assertions.auth.js`; org user list/options shapes live in `helpers/assertions.users.js`.
-
-**Planned:** heavier JSON Schema / `ajv` checks under `tests/contracts/` (dependency is already listed in `package.json`).
-
----
-
-## Latest updates (Apr 2026)
-
-- User regression expanded:
-  - `users.create.rules.spec.js` now includes create + update rule checks (role restrictions, payroll/modules restrictions, supervisor limits).
-  - `users.list.visibility.spec.js` now covers owner/supervisor/employee visibility, search behavior, employee isolation, and invalid filter rejection.
-- Regression commands and tags remain the same (`@regression`, `@users`).
-- Testcase workbook automation is active via `testcases:generate`, `testcases:sync`, and `testcases:refresh`.
-
----
-
-## Live test inventory
-
-**Auth — smoke**
-
-- `tests/api/modules/auth/smoke/auth.login.spec.js` — `POST auth/login` (OTP challenge; uppercase email variant).
-- `tests/api/modules/auth/smoke/auth.send-otp.spec.js` — login → `POST auth/send-otp`.
-- `tests/api/modules/auth/smoke/auth.verify-otp.spec.js` — login → send-otp → `POST auth/verify-otp` (`VERIFY_OTP` in `.env`).
-- `tests/api/modules/auth/smoke/auth.refresh.spec.js` — full OTP login → `POST auth/refresh` with JSON `refreshToken`.
-
-**Auth — negative**
-
-- `tests/api/modules/auth/negative/auth.login.negative.spec.js` — 401 / 422; optional padded + uppercase email when `RUN_PADDED_LOGIN_EMAIL_TEST=1`.
-- `tests/api/modules/auth/negative/auth.send-otp.negative.spec.js`
-- `tests/api/modules/auth/negative/auth.verify-otp.negative.spec.js`
-- `tests/api/modules/auth/negative/auth.refresh.negative.spec.js` — missing / malformed / invalid / replayed refresh → `401` / `AUTH_REFRESH_INVALID`.
-- `tests/api/modules/auth/negative/auth.forgot-password.negative.spec.js` — forgot-password validation (`422`).
-- `tests/api/modules/auth/negative/auth.password-action.negative.spec.js` — `POST auth/password-action/validate` (missing token, invalid token).
-- `tests/api/modules/auth/negative/auth.set-password.negative.spec.js` — `POST auth/set-password` (weak password `422`; mismatch `400` when `PASSWORD_ACTION_TOKEN_RAW` is set).
-
-**User management (`@users`)**
-
-- `tests/api/modules/users/smoke/users.list.spec.js` — `GET orgs/:orgId/users` (owner + `page` / `limit`) after **login → send-otp → verify-otp**.
-- `tests/api/modules/users/smoke/users.get.spec.js` — `GET orgs/:orgId/users/:orgUserId` (owner session, caller `orgUserId` from verify-otp).
-- `tests/api/modules/users/smoke/users.create.spec.js` — `POST orgs/:orgId/users` (Owner + `USER_CREATE_BRANCH_ID` / optional `USER_CREATE_DEPARTMENT_IDS`).
-- `tests/api/modules/users/smoke/users.update.flow.spec.js` — create → GET → `PATCH orgs/:orgId/users/:orgUserId` → GET to confirm update; see [`testCases/Orgs_users-patch.md`](testCases/Orgs_users-patch.md).
-- `tests/api/modules/users/smoke/users.options.spec.js` — `GET orgs/:orgId/users/options?branchId=` (supervisor session + branch id); asserts dropdown fields and `branchRole` in `EMPLOYEE` | `SUPERVISOR`.
-- `tests/api/regression/users.options.access.spec.js` — same route for **Owner** (branch from session or `USER_CREATE_BRANCH_ID`) and **Employee** (own `branchId`); see [`testCases/Orgs_users-options.md`](testCases/Orgs_users-options.md).
-- `tests/api/modules/users/negative/users.list.negative.spec.js` / `users.options.negative.spec.js` / `users.get.negative.spec.js` — unauthenticated `GET` → `401`.
-- `tests/api/regression/users.list.visibility.spec.js` — owner vs employee vs supervisor visibility (requires OTP chain + role-specific emails in `.env`).
-
-**Regression matrix**
-
-- `tests/api/regression/qa-auth-matrix.spec.js` — numbered flows (login, send-otp, verify-otp, refresh, optional protected route, Tier 3 member). Row map: [`tests/data/qa-test-matrix.md`](tests/data/qa-test-matrix.md).
-- Password-action flow coverage (validate → set-password → validate-again) remains a regression scenario when that spec is present locally; it requires `PASSWORD_ACTION_*` in `.env`. See [`testCases/Auth_password-action-validate.md`](testCases/Auth_password-action-validate.md) / [`testCases/Auth_set-password.md`](testCases/Auth_set-password.md).
-
-**Module folder index:** [`tests/api/modules/README.md`](tests/api/modules/README.md) documents module-first layout and naming.
-
-**Seeded QA accounts:** [`tests/data/qa-seeded-accounts.md`](tests/data/qa-seeded-accounts.md) (human reference) and [`tests/data/seededAccounts.js`](tests/data/seededAccounts.js) (machine-readable dataset for data-driven tests).
-
----
-
-## Prerequisites
-
-- Node.js 18+ (20 recommended), npm 9+
-
-```bash
-node -v
-npm -v
-```
-
----
-
-## First-time setup
+## Setup
 
 ```bash
 npm install
 npm run pw:install
+Copy-Item .env.example .env   # PowerShell; then edit .env
 ```
 
-Create `.env` from the template (PowerShell: `Copy-Item .env.example .env`) and set at least `LOGIN_EMAIL`, `LOGIN_PASSWORD`, and a correct `VERIFY_OTP` for your environment. For user-management smokes/regression, set the `USER_MGMT_*` and optional `TIER3_MEMBER_*` variables described in `.env.example`.
+Minimum for OTP tests: `LOGIN_EMAIL`, `LOGIN_PASSWORD`, `VERIFY_OTP`. Full suite: fill `.env.example` (tasks: `TASKS_BRANCH_ID` optional when JWT includes `branchId`; users need `USER_MGMT_*` / `USER_CREATE_*` where noted).
 
----
+### Why tests are skipped (and how to run them)
 
-## How runs work
+Specs use Playwright `test.skip(condition, reason)` so **skipped** runs do not count as failures. Skips usually mean **preconditions are not met**—fix env or QA data so the condition becomes false and the test executes.
 
-1. `package.json` invokes Playwright (often with `--grep` for tags).
-2. `playwright.config.js` loads `config/env.js`.
-3. `config/env.js` loads `.env` via `dotenv` and normalizes `BASE_URL` (must end with `/` so paths like `auth/login` resolve under `/api/v1/` — see below).
-4. Tests under `tests/api/` run; HTML / JUnit output goes under `reports/`.
+| Condition (typical) | What to do |
+|---------------------|------------|
+| Missing seeded persona email / `LOGIN_PASSWORD` | Set credentials in `.env`; align with [`tests/data/seededAccounts.js`](tests/data/seededAccounts.js). |
+| `Set TASKS_BRANCH_ID` / no branch after login | Task specs use [`helpers/tasksContext.js`](helpers/tasksContext.js): `resolveTasksBranchId` prefers env then session; `resolveTasksBranchPreferSession` prefers session (supervisor/employee). **`TASKS_BRANCH_ID` is often optional** when verify-otp returns `branchId`. |
+| [`SKIP_OTP_CHAIN_TESTS`](helpers/otpChainSkip.js) set | Unset when QA `POST /auth/send-otp` is usable; while set, OTP-dependent suites skip with the helper’s message. |
+| OTP login failed at step … | Fix `VERIFY_OTP`, clock, or QA auth; see [`helpers/authSession.js`](helpers/authSession.js). |
+| Board / list empty (no task ids) | Many flows call `resolveTaskCreateIds` (list → board → org **task-settings**) and `pickOrCreateTaskId` / `createBranchTask` to derive ids or **seed a task** when the branch is empty. |
+| `Need at least 2 columns` / `2 tasks` / `2 statuses` | Some scenarios still need real board shape (e.g. cross-column move) or enough statuses in settings; move smoke may seed two tasks when a column has fewer than two. |
+| `Set USER_CREATE_WRONG_BRANCH_ID` / wrong branch must differ | Set a second branch id for cross-branch negative tests; must not equal the logged-in user’s branch. |
+| Owner vs supervisor env (`TASKS_OWNER_*`, `TASKS_SUPERVISOR_*`) | Settings and some negatives need both roles; set emails/passwords per `.env.example`. |
+| `RUN_TASKS_RECURRENCE_TEST=1` | Optional recurrence delete test in [`tests/api/modules/tasks/smoke/tasks.delete.spec.js`](tests/api/modules/tasks/smoke/tasks.delete.spec.js); enable only when you intend to run it. |
 
----
+Goal for CI: **no unexpected skips**—treat a skip as a signal to fill the row above, not as a green substitute for a missing assertion.
+
+## Test case workbook (run in order)
+
+Use this when you want [`Master_TestCases.xlsx`](Master_TestCases.xlsx) built from [`testCases/*.md`](testCases/) and then filled with the latest Playwright run.
+
+1. **Generate** the workbook from markdown (creates/updates sheets and preserves run history where applicable).
+
+   ```bash
+   npm run testcases:generate
+   ```
+
+2. **Run** the API tests (writes `reports/json/results.json` used by sync).
+
+   ```bash
+   npm run test:api
+   ```
+
+3. **Update** `Master_TestCases.xlsx` with last run status / timing from that JSON.
+
+   ```bash
+   npm run testcases:sync
+   ```
+
+**One command for all three:** `npm run testcases:refresh` (same as generate → test:api → sync).
+
+Row order in the workbook follows [`project_docs/Role_Based_Test_Coverage_Review.md`](project_docs/Role_Based_Test_Coverage_Review.md); see [`scripts/testcase-sync/testcase-order.js`](scripts/testcase-sync/testcase-order.js) and [`testCases/README.md`](testCases/README.md).
 
 ## Commands
 
-| Command | Scope |
-|---------|--------|
-| `npm test` / `npm run test:api` | All tests under `tests/api` (run `npm run test:list` for current count). |
-| `npm run test:smoke` | `@smoke` only (includes auth + user list/options smokes). |
-| `npm run test:negative` | `@negative` only. |
-| `npm run test:smoke-and-negative` | `@smoke` or `@negative` (no `@regression`). |
-| `npm run test:regression` / `npm run test:manager-report` | `@regression` only (matrix + user visibility). |
-| `npm run test:users` | `@users` only (user-management-focused). |
-| `npm run test:module:auth` / `:tasks` / `:users` | Run all specs in a single module folder. |
-| `npm run test:module:auth:smoke` (and tasks/users variants) | Run module smoke specs only. |
-| `npm run test:module:auth:negative` (and tasks/users variants) | Run module negative specs only. |
-| `npm run test:list` | List tests without executing. |
-| `npm run report:open` | Open the last HTML report. |
-| `npm run testcases:generate` | Parse `testCases/*.md` and build/update `Master_TestCases.xlsx` (`TestCases_Master` + `Dashboard`; preserves `Run_Results_Raw`). |
-| `npm run testcases:sync` | Read `reports/json/results.json`, update latest status columns, append `Run_Results_Raw`, and write unmapped report. |
-| `npm run testcases:refresh` | End-to-end: generate workbook → run API tests → sync results to workbook. |
+| Command | What |
+|--------|------|
+| `npm test` / `npm run test:api` | All `tests/api` |
+| `npm run test:smoke` | `@smoke` |
+| `npm run test:negative` | `@negative` |
+| `npm run test:regression` | `@regression` |
+| `npm run test:list` | List tests |
+| `npm run report:open` | Last HTML report |
+| `npm run postman:build` | Regenerate `postman/Symbiote-API.postman_collection.json` |
+| `npm run postman:routes` | Print route inventory from specs |
+| `npm run test:tasks` | All specs whose `describe` title includes `@tasks` |
+| `npm run test:users` | Same for `@users` |
 
-**Report behavior:** The HTML report only lists tests that ran in that invocation. If you run `npm run test:smoke`, negative and regression tests will not appear — that is expected.
+### Modules (folders)
 
-**Terminal summary:** `ok` = passed, `x` = failed, `-` = skipped (often missing credentials, `SKIP_OTP_CHAIN_TESTS`, or OTP chain failure).
+| Command | What |
+|--------|------|
+| `npm run test:module:auth` | `tests/api/modules/auth` |
+| `npm run test:module:tasks` | `tests/api/modules/tasks` |
+| `npm run test:module:users` | `tests/api/modules/users` |
+| `npm run test:module:auth:smoke` | `tests/api/modules/auth/smoke` |
+| `npm run test:module:tasks:smoke` | `tests/api/modules/tasks/smoke` |
+| `npm run test:module:users:smoke` | `tests/api/modules/users/smoke` |
+| `npm run test:module:auth:negative` | `tests/api/modules/auth/negative` |
+| `npm run test:module:tasks:negative` | `tests/api/modules/tasks/negative` |
+| `npm run test:module:users:negative` | `tests/api/modules/users/negative` |
 
----
+### One file, folder, or grep
 
-## How to generate/update `master_testcase.xlsx`
-
-Use this when you add test cases or want latest execution status in Excel.
-
-> Note: the generated file name in this repo is `Master_TestCases.xlsx` (same workbook referred to here as `master_testcase.xlsx`).
-
-### 1) Generate or rebuild workbook structure
-
-```bash
-npm run testcases:generate
-```
-
-This parses `testCases/*.md` and creates/updates:
-- `TestCases_Master`
-- `Dashboard`
-- keeps historical `Run_Results_Raw` when present
-
-### 2) Run tests to produce latest JSON results
+Use `npx playwright test` with a path (under repo root). On Windows PowerShell, quote paths if they contain spaces.
 
 ```bash
-npm run test:api
+# Single file
+npx playwright test tests/api/modules/tasks/negative/tasks.update.negative.spec.js
+
+# Whole regression folder
+npx playwright test tests/api/regression
+
+# Module smoke only (same as npm run test:module:tasks:smoke)
+npx playwright test tests/api/modules/tasks/smoke
+
+# Path + tag (e.g. only @smoke inside that file)
+npx playwright test tests/api/modules/auth/smoke/auth.login.spec.js --grep @smoke
+
+# By test title (substring), optional with path
+npx playwright test tests/api/modules/tasks/smoke/tasks.crud.spec.js -g "TASKS-POST"
 ```
 
-This writes execution output to `reports/json/results.json`.
+## Where things live
 
-### 3) Sync latest run results into workbook
-
-```bash
-npm run testcases:sync
-```
-
-This updates testcase status and appends run history in `Run_Results_Raw`.
-
-### One-command refresh
-
-```bash
-npm run testcases:refresh
-```
-
-Equivalent to: generate -> run tests -> sync.
-
-### Quick troubleshooting
-
-- Workbook not found -> run `npm run testcases:generate`
-- No run data to sync -> run tests first (`npm run test:api`)
-- Many unmapped rows -> check `reports/testcase-sync/unmapped-results.json` and align `TC_ID` / scenario text
-
----
-
-## Environment variables
-
-See **`.env.example`** for the full list. Important ones:
-
-| Variable | Purpose |
-|----------|---------|
-| `BASE_URL` | API base, e.g. `https://api-qa.symbiotes.co.uk/api/v1/` (trailing slash recommended; `config/env.js` normalizes). |
-| `LOGIN_EMAIL` / `LOGIN_PASSWORD` | Default login for auth smokes and password fallback for other roles. |
-| `VERIFY_OTP` | Static OTP for `verify-otp` after `send-otp`. |
-| `SKIP_OTP_CHAIN_TESTS` | Set to `1` to skip tests that need a working `POST auth/send-otp`. |
-| `RUN_PADDED_LOGIN_EMAIL_TEST` | Set to `1` to run the spaced + uppercase login negative (API must trim before validation). |
-| `PROTECTED_API_PATH` | Relative path for QA matrix row 14 (invalid JWT). |
-| `TIER3_MEMBER_EMAIL` / `TIER3_MEMBER_PASSWORD` | QA matrix row 15 (branch member). |
-| `USER_MGMT_OWNER_EMAIL`, `USER_MGMT_EMPLOYEE_EMAIL`, `USER_MGMT_SUPERVISOR_EMAIL` | List/visibility/options tests; `*_PASSWORD` optional (falls back to `LOGIN_PASSWORD`). |
-| `PASSWORD_ACTION_TOKEN_RAW` | Raw token from forgot-password or invite email (optional; enables password-action regression — **consumes** the token). |
-| `PASSWORD_ACTION_EXPECT_PURPOSE` | `RESET_PASSWORD` or `SET_PASSWORD` — must match validate response when using the token env. |
-| `PASSWORD_ACTION_NEW_PASSWORD` | New password for the flow spec (policy-compliant; used once with `PASSWORD_ACTION_TOKEN_RAW`). |
-
-For `users.list.visibility.spec.js`, those email env vars are optional overrides. If unset, the test falls back to personas from [`tests/data/seededAccounts.js`](tests/data/seededAccounts.js): `t1_owner`, `t1_emp1`, and `t3_supervisor`.
-
-**CI:** `.github/workflows/api-tests.yml` runs `npm run test:smoke` with `SYMBIOTE_LOGIN_EMAIL` / `SYMBIOTE_LOGIN_PASSWORD` secrets if configured; otherwise auth smokes may skip.
-
----
-
-## Authenticated calls after OTP
-
-Org user endpoints (`GET .../orgs/:orgId/users`, `GET .../orgs/:orgId/users/options`) expect a **Bearer access token** from:
-
-**login → send-otp → verify-otp**
-
-Smokes use **`helpers/authSession.js`** → `loginWithOtp(client, { email, password, otp })`, not `helpers/auth.js` (that file remains a minimal placeholder for future non-OTP flows).
-
----
-
-## Project layout
-
-```text
-.
-|-- .github/workflows/api-tests.yml
-|-- config/env.js
-|-- helpers/
-|   |-- apiClient.js          # Playwright request context; get/post
-|   |-- apiResponseReport.js  # Attach api-response.json to HTML report
-|   |-- assertions.js         # HTTP + expectJsonSuccessBody / expectJsonErrorBody
-|   |-- assertions.auth.js    # Auth response contracts
-|   |-- assertions.users.js   # List users + user options contracts
-|   |-- auth.js               # Placeholder for shared auth headers
-|   |-- authSession.js        # loginWithOtp (full OTP chain)
-|   |-- otpChainSkip.js       # SKIP_OTP_CHAIN_TESTS helper
-|   `-- testData.js
-|-- tests/api/
-|   |-- modules/
-|   |   |-- auth/
-|   |   |   |-- smoke/
-|   |   |   `-- negative/
-|   |   |-- tasks/
-|   |   |   |-- smoke/
-|   |   |   `-- negative/
-|   |   |-- users/
-|   |   |   |-- smoke/
-|   |   |   `-- negative/
-|   |   `-- template/
-|   |       `-- smoke/
-|   `-- regression/
-|-- tests/data/
-|   |-- qa-seeded-accounts.md
-|   |-- seededAccounts.js     # Structured seeded personas for data-driven tests
-|   `-- qa-test-matrix.md
-|-- tests/contracts/          # Reserved for schema tests
-|-- .env.example
-|-- playwright.config.js
-`-- package.json
-```
-
-**Naming:** Put specs under `tests/api/modules/<module>/<suite>/` for smoke/negative suites and keep `tests/api/regression/` for cross-module regression flows. Include `@smoke`, `@negative`, or `@regression` in `test.describe` titles for `grep`. Use `@users` for user-management suites when you want `npm run test:users`. Use `@auth` for forgot-password / password-action / set-password specs when you want `npx playwright test --grep @auth`.
-
----
-
-## API responses in the HTML report
-
-Tests that call **`publishApiResponse`** can attach **`api-response.json`** (response body and optional request payload). The attachment **`urlHint`** is the full request URL when a Playwright **`APIResponse`** is passed (includes path segments such as `orgId` and query strings such as `branchId`). **`endpointPathAndQuery`** repeats only pathname + search for quick scanning. **`loginEmail`** is set when the call is tied to an OTP login (the account email used for that session), or inferred for **`POST auth/login`** from the request body; it is **`null`** when the request is unauthenticated (for example negative tests without a Bearer token). Treat reports as sensitive if they contain tokens.
-
----
-
-## Base URL gotcha
-
-If `BASE_URL` were `https://host/api/v1` **without** a trailing slash, a relative URL `auth/login` could resolve to `https://host/api/auth/login`. **`config/env.js` forces a trailing slash** on `BASE_URL`. Use paths **without** a leading slash (e.g. `auth/login`, `orgs/{id}/users`).
-
----
-
-## Tagging
-
-- `@smoke` — quick gates.
-- `@negative` — error paths.
-- `@regression` — matrix and deeper scenarios.
-- `@users` — user-management module slice.
-
----
-
-## Troubleshooting
-
-**Many skips on auth / user tests:** Set `LOGIN_EMAIL`, `LOGIN_PASSWORD`, and role-specific emails in `.env`. User smokes also need a working OTP chain (`send-otp` + correct `VERIFY_OTP`).
-
-**`send-otp` or `verify-otp` fails (5xx / wrong OTP):** Fix QA or set **`SKIP_OTP_CHAIN_TESTS=1`** until `send-otp` is healthy. For parallel load hitting the same account, try **`npx playwright test --workers=1`** or `PW_WORKERS=1` if your `playwright.config.js` respects it.
-
-**Report shows only smoke:** You ran `npm run test:smoke`. Use `npm test` or `npm run test:smoke-and-negative` to include negatives.
-
-**Padded login negative skipped:** Enable with **`RUN_PADDED_LOGIN_EMAIL_TEST=1`** when the API trims email before validation.
-
----
-
-## Adding a new test
-
-1. Use **`createApiClient`** from `helpers/apiClient.js` and **relative** paths.
-2. Reuse **`expectJsonSuccessBody` / `expectJsonErrorBody`** in `helpers/assertions.js`; add domain helpers beside `assertions.auth.js` / `assertions.users.js` when shapes stabilize.
-3. After OTP login, reuse **`loginWithOtp`** from `helpers/authSession.js` and pass **`Authorization: Bearer ${accessToken}`** on follow-up requests.
-4. For persona/role scenarios, prefer data-driven inputs from [`tests/data/seededAccounts.js`](tests/data/seededAccounts.js) and use env vars as optional overrides.
-5. Tag the **`test.describe`** title and run the matching npm script.
-
----
-
-## Conventions (short)
-
-- Keep helpers generic; keep business rules in specs.
-- Prefer small, readable tests over duplicated request boilerplate.
-- Update this README when you add modules or change env contracts.
+- Specs: [`tests/api/`](tests/api/) (`modules/auth|tasks|users`, `regression/`)
+- Seeded personas: [`tests/data/seededAccounts.js`](tests/data/seededAccounts.js)
+- Auth matrix map: [`tests/data/qa-test-matrix.md`](tests/data/qa-test-matrix.md)

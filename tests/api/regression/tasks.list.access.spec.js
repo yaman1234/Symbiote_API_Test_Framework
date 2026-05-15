@@ -8,6 +8,7 @@ const { expectTasksListSuccessBody } = require('../../../helpers/assertions.task
 const { getOrgUsersItems, listItemBranchId } = require('../../../helpers/assertions.users');
 const { publishApiResponse } = require('../../../helpers/apiResponseReport');
 const { otpChainTestsSkippedReason } = require('../../../helpers/otpChainSkip');
+const { resolveTasksBranchId, resolveTasksBranchPreferSession } = require('../../../helpers/tasksContext');
 
 function resolveCredential(email, fallbackEmail, password, fallbackPassword) {
   return {
@@ -120,7 +121,6 @@ test.describe('List tasks access by role', () => {
     );
     test.skip(!c.email, 'Set TASKS_OWNER_EMAIL or USER_MGMT_OWNER_EMAIL');
     test.skip(!c.password, 'Set TASKS_OWNER_PASSWORD or LOGIN_PASSWORD');
-    test.skip(!env.TASKS_BRANCH_ID, 'Set TASKS_BRANCH_ID');
     const skipOtp = otpChainTestsSkippedReason();
     test.skip(!!skipOtp, skipOtp);
 
@@ -128,7 +128,9 @@ test.describe('List tasks access by role', () => {
     try {
       const session = await loginWithOtp(client, { email: c.email, password: c.password, otp: env.VERIFY_OTP });
       test.skip(!session.ok, session.ok ? '' : `OTP login failed at ${session.step}`);
-      const { res, body } = await fetchTasksList(client, session, env.TASKS_BRANCH_ID, testInfo, 'tasks/list-owner');
+      const branchId = resolveTasksBranchId(env.TASKS_BRANCH_ID, session.branchId);
+      test.skip(!branchId, 'No branch id (set TASKS_BRANCH_ID or verify-otp session branchId)');
+      const { res, body } = await fetchTasksList(client, session, branchId, testInfo, 'tasks/list-owner');
       expectSuccessStatus(res, body);
       expectJsonContentType(res);
       expectTasksListSuccessBody(body, { message: 'Tasks fetched.' });
@@ -154,8 +156,7 @@ test.describe('List tasks access by role', () => {
     try {
       const session = await loginWithOtp(client, { email: c.email, password: c.password, otp: env.VERIFY_OTP });
       test.skip(!session.ok, session.ok ? '' : `OTP login failed at ${session.step}`);
-      const branchId = session.branchId || env.TASKS_BRANCH_ID;
-      test.skip(!branchId, 'Set TASKS_BRANCH_ID or use a supervisor with branch.id in token');
+      const branchId = resolveTasksBranchPreferSession(env.TASKS_BRANCH_ID, session.branchId);
       const { res, body } = await fetchTasksList(client, session, branchId, testInfo, 'tasks/list-supervisor');
       expectSuccessStatus(res, body);
       expectJsonContentType(res);
@@ -188,7 +189,7 @@ test.describe('List tasks access by role', () => {
         altEmployee2 ? { email: altEmployee2.email, password: env.LOGIN_PASSWORD || altEmployee2.password } : null
       ]);
       test.skip(!session, 'OTP login failed for all employee candidates');
-      let branchId = session.branchId || env.TASKS_BRANCH_ID;
+      let branchId = resolveTasksBranchPreferSession(env.TASKS_BRANCH_ID, session.branchId);
       if (!branchId) {
         branchId = await resolveOtherBranchIdFromSeededAccount(client, '');
       }

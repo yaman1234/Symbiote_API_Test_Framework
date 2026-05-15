@@ -10,6 +10,7 @@ const {
 } = require('../../../../../helpers/assertions');
 const { publishApiResponse } = require('../../../../../helpers/apiResponseReport');
 const { otpChainTestsSkippedReason } = require('../../../../../helpers/otpChainSkip');
+const { resolveTasksBranchId, pickOrCreateTaskId } = require('../../../../../helpers/tasksContext');
 
 test.describe('Task detail @tasks', () => {
   test('[TASKS-DETAIL-001] : Task detail strict shape contains expected sections → 2XX', async ({}, testInfo) => {
@@ -19,27 +20,26 @@ test.describe('Task detail @tasks', () => {
 
     test.skip(!email, 'Seeded supervisor t3_supervisor email not found');
     test.skip(!password, 'Set LOGIN_PASSWORD');
-    test.skip(!env.TASKS_BRANCH_ID, 'Set TASKS_BRANCH_ID for tasks routes');
     const skipOtp = otpChainTestsSkippedReason();
     test.skip(!!skipOtp, skipOtp);
 
     const client = await createApiClient();
+    let session = null;
+    let branchId = '';
+    let createdTaskId;
     try {
-      const session = await loginWithOtp(client, { email, password, otp: env.VERIFY_OTP });
+      session = await loginWithOtp(client, { email, password, otp: env.VERIFY_OTP });
       test.skip(!session.ok, session.ok ? '' : `OTP login failed at ${session.step}`);
 
-      const boardPath = `orgs/${session.orgId}/branches/${env.TASKS_BRANCH_ID}/tasks/board`;
-      const boardRes = await client.get(boardPath, {
-        headers: { Authorization: `Bearer ${session.accessToken}` }
-      });
-      const boardBody = await boardRes.json();
-      test.skip(!boardRes.ok(), `Board preload failed: HTTP ${boardRes.status()}`);
-      const taskId = (boardBody?.data?.columns || [])
-        .flatMap((column) => (Array.isArray(column?.tasks) ? column.tasks : []))
-        .find((task) => task && task.id)?.id;
-      test.skip(!taskId, 'No task id available from board response');
+      branchId = resolveTasksBranchId(env.TASKS_BRANCH_ID, session.branchId);
+      test.skip(!branchId, 'No branch id (set TASKS_BRANCH_ID or verify-otp session branchId)');
 
-      const detailPath = `orgs/${session.orgId}/branches/${env.TASKS_BRANCH_ID}/tasks/${taskId}`;
+      const picked = await pickOrCreateTaskId(client, session, branchId);
+      test.skip(!picked.ok, picked.reason || 'No task id for detail');
+      const { taskId } = picked;
+      if (picked.created) createdTaskId = taskId;
+
+      const detailPath = `orgs/${session.orgId}/branches/${branchId}/tasks/${taskId}`;
       const res = await client.get(detailPath, {
         headers: { Authorization: `Bearer ${session.accessToken}` }
       });
@@ -79,6 +79,11 @@ test.describe('Task detail @tasks', () => {
       expect(Array.isArray(data.comments), 'comments[]').toBeTruthy();
       expect(Array.isArray(data.activityLogs), 'activityLogs[]').toBeTruthy();
     } finally {
+      if (client && createdTaskId && session && session.ok && branchId) {
+        await client.delete(`orgs/${session.orgId}/branches/${branchId}/tasks/${createdTaskId}`, {
+          headers: { Authorization: `Bearer ${session.accessToken}` }
+        });
+      }
       await client.dispose();
     }
   });

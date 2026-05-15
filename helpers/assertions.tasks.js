@@ -64,7 +64,29 @@ function expectTasksListSuccessBody(body, opts = {}) {
   }
 }
 
+/**
+ * Resolves the subtask tree array from GET .../tasks/:id/subtasks/tree responses.
+ * Supports raw array, `data` as array, or `data` as object with common array fields.
+ *
+ * @param {object} body - Parsed JSON (Symbiote envelope or raw array)
+ * @returns {any[]|null}
+ */
+function pickSubtaskTreeArray(body) {
+  if (Array.isArray(body)) return body;
+  const d = body?.data;
+  if (Array.isArray(d)) return d;
+  if (d && typeof d === 'object' && !Array.isArray(d)) {
+    for (const key of ['items', 'tree', 'nodes', 'subtasks', 'children', 'rows']) {
+      if (Array.isArray(d[key])) return d[key];
+    }
+    if (d.root && typeof d.root === 'object' && Array.isArray(d.root.children)) {
+      return d.root.children;
+    }
+  }
+  return null;
+}
+
 module.exports = {
   expectTasksListSuccessBody,
- 
+  pickSubtaskTreeArray
 };

@@ -6,6 +6,7 @@ const { loginWithOtp } = require('../../../../../helpers/authSession');
 const { getSeededAccountByKey } = require('../../../../../helpers/testData');
 const { publishApiResponse } = require('../../../../../helpers/apiResponseReport');
 const { otpChainTestsSkippedReason } = require('../../../../../helpers/otpChainSkip');
+const { resolveTasksBranchId } = require('../../../../../helpers/tasksContext');
 
 test.describe('List tasks', () => {
   // Checks: HTTP status and JSON content-type, then validates success/error contract and key scenario fields.
@@ -41,11 +42,10 @@ test.describe('List tasks', () => {
   test('[TASKS-LIST-011] : Tasks list rejects pageSize above max (101) → 422 or 400', async ({}, testInfo) => {
     const owner = getSeededAccountByKey('t1_owner');
     const email = env.TASKS_OWNER_EMAIL || env.USER_MGMT_OWNER_EMAIL || (owner && owner.email) || '';
-    const password = env.TASKS_OWNER_PASSWORD || env.USER_MGMT_OWNER_PASSWORD || env.LOGIN_PASSWORD;
+    const password = env.TASKS_OWNER_PASSWORD || env.USER_MGMT_OWNER_PASSWORD || env.LOGIN_PASSWORD || '';
 
     test.skip(!email, 'Set TASKS_OWNER_EMAIL or USER_MGMT_OWNER_EMAIL');
     test.skip(!password, 'Set TASKS_OWNER_PASSWORD or LOGIN_PASSWORD');
-    test.skip(!env.TASKS_BRANCH_ID, 'Set TASKS_BRANCH_ID for tasks list route');
     const skipOtp = otpChainTestsSkippedReason();
     test.skip(!!skipOtp, skipOtp);
 
@@ -54,7 +54,10 @@ test.describe('List tasks', () => {
       const session = await loginWithOtp(client, { email, password, otp: env.VERIFY_OTP });
       test.skip(!session.ok, session.ok ? '' : `OTP login failed at ${session.step}`);
 
-      const path = `orgs/${session.orgId}/branches/${env.TASKS_BRANCH_ID}/tasks`;
+      const branchId = resolveTasksBranchId(env.TASKS_BRANCH_ID, session.branchId);
+      test.skip(!branchId, 'No branch id (set TASKS_BRANCH_ID or verify-otp session branchId)');
+
+      const path = `orgs/${session.orgId}/branches/${branchId}/tasks`;
       const params = { page: 1, pageSize: 101 };
       const res = await client.get(path, {
         headers: { Authorization: `Bearer ${session.accessToken}` },

@@ -6,6 +6,7 @@ const { getSeededAccountByKey } = require('../../../../../helpers/testData');
 const { expectSuccessStatus, expectJsonContentType, expectJsonSuccessBody } = require('../../../../../helpers/assertions');
 const { publishApiResponse } = require('../../../../../helpers/apiResponseReport');
 const { otpChainTestsSkippedReason } = require('../../../../../helpers/otpChainSkip');
+const { resolveTasksBranchId } = require('../../../../../helpers/tasksContext');
 
 test.describe('Task notifications @tasks', () => {
   test('[TASKS-NOTIF-001] : List task notifications returns success', async ({}, testInfo) => {
@@ -15,7 +16,6 @@ test.describe('Task notifications @tasks', () => {
 
     test.skip(!email, 'Seeded supervisor email not found');
     test.skip(!password, 'Set LOGIN_PASSWORD');
-    test.skip(!env.TASKS_BRANCH_ID, 'Set TASKS_BRANCH_ID');
     const skipOtp = otpChainTestsSkippedReason();
     test.skip(!!skipOtp, skipOtp);
 
@@ -24,7 +24,8 @@ test.describe('Task notifications @tasks', () => {
       const session = await loginWithOtp(client, { email, password, otp: env.VERIFY_OTP });
       test.skip(!session.ok, session.ok ? '' : `OTP login failed at ${session.step}`);
 
-      const branchId = env.TASKS_BRANCH_ID || session.branchId || '';
+      const branchId = resolveTasksBranchId(env.TASKS_BRANCH_ID, session.branchId);
+      test.skip(!branchId, 'No branch id (set TASKS_BRANCH_ID or verify-otp session branchId)');
       const path = `orgs/${session.orgId}/branches/${branchId}/task-notifications`;
       const res = await client.get(path, {
         headers: { Authorization: `Bearer ${session.accessToken}` },

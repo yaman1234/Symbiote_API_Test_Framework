@@ -31,7 +31,6 @@ test.describe('Tasks CRUD @tasks', () => {
   test.beforeAll(async () => {
     test.skip(!email, 'Seeded supervisor email not found');
     test.skip(!password, 'Set LOGIN_PASSWORD');
-    test.skip(!env.TASKS_BRANCH_ID, 'Set TASKS_BRANCH_ID');
     const skipOtp = otpChainTestsSkippedReason();
     test.skip(!!skipOtp, skipOtp);
 

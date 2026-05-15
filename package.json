@@ -6,6 +6,7 @@
   "scripts": {
     "test": "playwright test tests/api",
     "testcases:generate": "node scripts/testcase-sync/generate-master-testcases.js",
+    "testcases:restructure": "node scripts/testcase-sync/restructure-master-xlsx.js",
     "testcases:sync": "node scripts/testcase-sync/sync-test-results.js",
     "testcases:refresh": "npm run testcases:generate && npm run test:api && npm run testcases:sync",
     "pw:install": "playwright install",
@@ -29,7 +30,9 @@
     "test:module:users:negative": "playwright test tests/api/modules/users/negative",
     "test:smoke-and-negative": "playwright test --grep \"@smoke|@negative\"",
     "test:api": "playwright test tests/api",
-    "report:open": "playwright show-report"
+    "report:open": "playwright show-report",
+    "postman:build": "node scripts/postman/build-collection.js",
+    "postman:routes": "node scripts/postman/print-routes.js"
   },
   "devDependencies": {
     "@playwright/test": "^1.59.1"
@@ -37,6 +40,7 @@
   "dependencies": {
     "ajv": "^8.18.0",
     "dotenv": "^17.4.1",
+    "exceljs": "^4.4.0",
     "xlsx": "^0.18.5"
   }
 }

@@ -1,0 +1,2160 @@
+{
+  "info": {
+    "name": "Symbiote API (Playwright parity)",
+    "description": "Symbiote API — hybrid catalog aligned with Playwright tests under `tests/api`.\n\n**baseUrl** must include trailing slash (e.g. `https://host/api/v1/`). Paths are relative segments after baseUrl.\n\n**Auth OTP flow:** POST `auth/login` → copy or auto-save `loginAttemptId` → POST `auth/send-otp` → POST `auth/verify-otp` (Tests script saves `accessToken`, `refreshToken`, `orgId`, `branchId` on success). Same shape as `helpers/authSession.js`.\n\n**Secrets:** use `postman/local.postman_environment.json` (copy values from `.env` / CI secrets); do not commit filled environments.\n\n**Tasks:** set `statusId`, `priorityId`, `userId` (assignee) from an existing task list response if needed.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://api-qa.symbiotes.co.uk/api/v1/"
+    },
+    {
+      "key": "accessToken",
+      "value": ""
+    },
+    {
+      "key": "refreshToken",
+      "value": ""
+    },
+    {
+      "key": "loginAttemptId",
+      "value": ""
+    },
+    {
+      "key": "orgId",
+      "value": ""
+    },
+    {
+      "key": "branchId",
+      "value": ""
+    },
+    {
+      "key": "taskId",
+      "value": ""
+    },
+    {
+      "key": "parentTaskId",
+      "value": ""
+    },
+    {
+      "key": "subtaskId",
+      "value": ""
+    },
+    {
+      "key": "commentId",
+      "value": ""
+    },
+    {
+      "key": "notificationId",
+      "value": ""
+    },
+    {
+      "key": "statusId",
+      "value": ""
+    },
+    {
+      "key": "priorityId",
+      "value": ""
+    },
+    {
+      "key": "filterId",
+      "value": ""
+    },
+    {
+      "key": "userId",
+      "value": ""
+    },
+    {
+      "key": "wrongBranchId",
+      "value": ""
+    },
+    {
+      "key": "protectedApiPath",
+      "value": "orgs/00000000-0000-0000-0000-000000000001/users"
+    },
+    {
+      "key": "loginEmail",
+      "value": ""
+    },
+    {
+      "key": "loginPassword",
+      "value": ""
+    },
+    {
+      "key": "verifyOtp",
+      "value": "111111"
+    }
+  ],
+  "item": [
+    {
+      "name": "Auth (detailed)",
+      "description": "Matches `tests/api/modules/auth` + `tests/api/regression/qa-auth-matrix.spec.js` scenarios.",
+      "item": [
+        {
+          "name": "login",
+          "item": [
+            {
+              "name": "[AUTH-LOGIN-010] Valid login",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{baseUrl}}auth/login",
+                "description": "qa-auth-matrix.spec.js",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"{{loginEmail}}\",\n  \"password\": \"{{loginPassword}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "try {",
+                      "  const j = pm.response.json();",
+                      "  if (j && j.data && j.data.loginAttemptId) {",
+                      "    pm.collectionVariables.set('loginAttemptId', j.data.loginAttemptId);",
+                      "  }",
+                      "} catch (e) {}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "[AUTH-LOGIN-011] Uppercase email",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{baseUrl}}auth/login",
+                "description": "qa-auth-matrix — set `loginEmail` to uppercase in environment for parity.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"{{loginEmail}}\",\n  \"password\": \"{{loginPassword}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "try {",
+                      "  const j = pm.response.json();",
+                      "  if (j && j.data && j.data.loginAttemptId) {",
+                      "    pm.collectionVariables.set('loginAttemptId', j.data.loginAttemptId);",
+                      "  }",
+                      "} catch (e) {}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "[AUTH-LOGIN-002] Invalid password",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{baseUrl}}auth/login",
+                "description": "auth.login.negative.spec.js",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"t3.owner@demo.com\",\n  \"password\": \"DefinitelyWrong#NotReal99\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "[AUTH-LOGIN-003] Unknown email",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{baseUrl}}auth/login",
+                "description": "auth.login.negative.spec.js, qa-auth-matrix [AUTH-LOGIN-013]",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"nonexistent.user@demo.com\",\n  \"password\": \"DefinitelyWrong#NotReal99\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "[AUTH-LOGIN-012] Wrong password (env email)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{baseUrl}}auth/login",
+                "description": "qa-auth-matrix.spec.js",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"{{loginEmail}}\",\n  \"password\": \"DefinitelyWrong#NotReal99\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "[AUTH-LOGIN-004] Missing email",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{baseUrl}}auth/login",
+                "description": "auth.login.negative.spec.js",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"password\": \"x\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "[AUTH-LOGIN-005] Missing password",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{baseUrl}}auth/login",
+                "description": "auth.login.negative.spec.js",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"t3.owner@demo.com\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "[AUTH-LOGIN-006] Invalid email format",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{baseUrl}}auth/login",
+                "description": "auth.login.negative.spec.js",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"not-an-email\",\n  \"password\": \"SomePassword1!\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "[AUTH-LOGIN-007] Empty password",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{baseUrl}}auth/login",
+                "description": "auth.login.negative.spec.js",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"t3.owner@demo.com\",\n  \"password\": \"\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "[AUTH-LOGIN-008] Padded email",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{baseUrl}}auth/login",
+                "description": "auth.login.negative.spec.js — RUN_PADDED_LOGIN_EMAIL_TEST in Playwright",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"  {{loginEmail}}   \",\n  \"password\": \"{{loginPassword}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "[AUTH-LOGIN-009] Uppercase env email",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{baseUrl}}auth/login",
+                "description": "auth.login.negative.spec.js",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"{{loginEmail}}\",\n  \"password\": \"{{loginPassword}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "try {",
+                      "  const j = pm.response.json();",
+                      "  if (j && j.data && j.data.loginAttemptId) {",
+                      "    pm.collectionVariables.set('loginAttemptId', j.data.loginAttemptId);",
+                      "  }",
+                      "} catch (e) {}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "send-otp",
+          "item": [
+            {
+              "name": "[AUTH-SENDOTP-006] EMAIL",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{baseUrl}}auth/send-otp",
+                "description": "qa-auth-matrix, auth.send-otp smoke",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"loginAttemptId\": \"{{loginAttemptId}}\",\n  \"method\": \"EMAIL\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Content-Type mentions json', () => {",
+                      "  pm.expect(pm.response.headers.get('Content-Type') || '').to.match(/json/i);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "[AUTH-SENDOTP-007] SMS unsupported",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{baseUrl}}auth/send-otp",
+                "description": "qa-auth-matrix.spec.js",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"loginAttemptId\": \"{{loginAttemptId}}\",\n  \"method\": \"SMS\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "verify-otp",
+          "item": [
+            {
+              "name": "[AUTH-VERIFY-007] Valid OTP",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{baseUrl}}auth/verify-otp",
+                "description": "qa-auth-matrix — after send-otp",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"loginAttemptId\": \"{{loginAttemptId}}\",\n  \"otp\": \"{{verifyOtp}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "try {",
+                      "  const j = pm.response.json();",
+                      "  if (j && j.data) {",
+                      "    if (j.data.accessToken) pm.collectionVariables.set('accessToken', j.data.accessToken);",
+                      "    if (j.data.refreshToken) pm.collectionVariables.set('refreshToken', j.data.refreshToken);",
+                      "    if (j.data.org && j.data.org.id) pm.collectionVariables.set('orgId', j.data.org.id);",
+                      "    const b = j.data.branch;",
+                      "    if (b && b.id) pm.collectionVariables.set(\"branchId\", b.id);",
+                      "    const branches = Array.isArray(j.data.branches) ? j.data.branches : [];",
+                      "    const active = branches.find((x) => x && x.status === \"ACTIVE\" && x.id);",
+                      "    if (active && active.id) pm.collectionVariables.set(\"branchId\", active.id);",
+                      "  }",
+                      "} catch (e) {}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Content-Type mentions json', () => {",
+                      "  pm.expect(pm.response.headers.get('Content-Type') || '').to.match(/json/i);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "[AUTH-VERIFY-008] Before send-otp",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{baseUrl}}auth/verify-otp",
+                "description": "qa-auth-matrix.spec.js",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"loginAttemptId\": \"{{loginAttemptId}}\",\n  \"otp\": \"{{verifyOtp}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "[AUTH-VERIFY-009] Wrong OTP",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{baseUrl}}auth/verify-otp",
+                "description": "qa-auth-matrix — after send-otp",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"loginAttemptId\": \"{{loginAttemptId}}\",\n  \"otp\": \"999999\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "[AUTH-VERIFY-010] Double verify",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{baseUrl}}auth/verify-otp",
+                "description": "Second call expect 400. qa-auth-matrix",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"loginAttemptId\": \"{{loginAttemptId}}\",\n  \"otp\": \"{{verifyOtp}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "[AUTH-VERIFY-011] Tier-3 member verify",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{baseUrl}}auth/verify-otp",
+                "description": "qa-auth-matrix — use TIER3_MEMBER_EMAIL chain in Playwright; same body shape here.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"loginAttemptId\": \"{{loginAttemptId}}\",\n  \"otp\": \"{{verifyOtp}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "try {",
+                      "  const j = pm.response.json();",
+                      "  if (j && j.data) {",
+                      "    if (j.data.accessToken) pm.collectionVariables.set('accessToken', j.data.accessToken);",
+                      "    if (j.data.refreshToken) pm.collectionVariables.set('refreshToken', j.data.refreshToken);",
+                      "    if (j.data.org && j.data.org.id) pm.collectionVariables.set('orgId', j.data.org.id);",
+                      "    const b = j.data.branch;",
+                      "    if (b && b.id) pm.collectionVariables.set(\"branchId\", b.id);",
+                      "    const branches = Array.isArray(j.data.branches) ? j.data.branches : [];",
+                      "    const active = branches.find((x) => x && x.status === \"ACTIVE\" && x.id);",
+                      "    if (active && active.id) pm.collectionVariables.set(\"branchId\", active.id);",
+                      "  }",
+                      "} catch (e) {}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "refresh",
+          "item": [
+            {
+              "name": "[AUTH-REFRESH-006] Body refreshToken",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{baseUrl}}auth/refresh",
+                "description": "qa-auth-matrix.spec.js",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Content-Type mentions json', () => {",
+                      "  pm.expect(pm.response.headers.get('Content-Type') || '').to.match(/json/i);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "[AUTH-REFRESH-007] Cookie refresh_token",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Cookie",
+                    "value": "refresh_token={{refreshToken}}"
+                  }
+                ],
+                "url": "{{baseUrl}}auth/refresh",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "description": "qa-auth-matrix.spec.js"
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Content-Type mentions json', () => {",
+                      "  pm.expect(pm.response.headers.get('Content-Type') || '').to.match(/json/i);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "[AUTH-REFRESH-008] Malformed refresh",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{baseUrl}}auth/refresh",
+                "description": "qa-auth-matrix, auth.refresh.negative",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"refreshToken\": \"not-a-valid-format\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "[AUTH-REFRESH-002] Missing refresh",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{baseUrl}}auth/refresh",
+                "description": "auth.refresh.negative.spec.js",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "[AUTH-REFRESH-004] Unknown refresh token",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{baseUrl}}auth/refresh",
+                "description": "auth.refresh.negative.spec.js",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"refreshToken\": \"00000000-0000-0000-0000-000000000000.fake-secret-part\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "other",
+          "item": [
+            {
+              "name": "POST auth/forgot-password",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{baseUrl}}auth/forgot-password",
+                "description": "auth.forgot-password.negative.spec.js",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "POST auth/set-password",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{baseUrl}}auth/set-password",
+                "description": "auth.set-password.negative.spec.js — adjust to match API",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"token\": \"invalid\",\n  \"password\": \"Short1\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "POST auth/password-action/validate",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{baseUrl}}auth/password-action/validate",
+                "description": "auth.password-action.negative.spec.js",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"password\": \"Abcd1234!\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Smoke auth/send-otp (minimal)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{baseUrl}}auth/send-otp",
+                "description": "auth.send-otp.spec.js",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"loginAttemptId\": \"{{loginAttemptId}}\",\n  \"method\": \"EMAIL\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Smoke auth/login (minimal)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{baseUrl}}auth/login",
+                "description": "auth.login.spec.js",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"{{loginEmail}}\",\n  \"password\": \"{{loginPassword}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "try {",
+                      "  const j = pm.response.json();",
+                      "  if (j && j.data && j.data.loginAttemptId) {",
+                      "    pm.collectionVariables.set('loginAttemptId', j.data.loginAttemptId);",
+                      "  }",
+                      "} catch (e) {}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Tasks (catalog)",
+      "description": "Deduplicated routes used across `tests/api/modules/tasks/**/*.spec.js`. Use Bearer `accessToken`.",
+      "item": [
+        {
+          "name": "GET list tasks",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}orgs/{{orgId}}/branches/{{branchId}}/tasks?page=1&pageSize=20&sort=createdAt&order=desc",
+            "description": "tasks.list.spec.js, tasks.crud.spec.js, tasks.list.negative.spec.js"
+          }
+        },
+        {
+          "name": "GET tasks board",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}orgs/{{orgId}}/branches/{{branchId}}/tasks/board",
+            "description": "tasks.boardview.spec.js, tasks.comments*, tasks.delete*, tasks.move*, tasks.create.negative, tasks.subtasks*, tasks.list.spec.js"
+          }
+        },
+        {
+          "name": "GET task by id",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}orgs/{{orgId}}/branches/{{branchId}}/tasks/{{taskId}}",
+            "description": "tasks.detail.spec.js, tasks.delete.spec.js, tasks.subtasks*, tasks.move.negative, tasks.update*"
+          }
+        },
+        {
+          "name": "POST create task",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}orgs/{{orgId}}/branches/{{branchId}}/tasks",
+            "description": "tasks.crud.spec.js, tasks.create.negative.spec.js, tasks.update.negative, tasks.delete*, tasks.move*, tasks.comments*",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Postman task\",\n  \"description\": \"catalog\",\n  \"statusId\": \"{{statusId}}\",\n  \"priorityId\": \"{{priorityId}}\",\n  \"assigneeId\": \"{{userId}}\",\n  \"startAt\": \"2026-01-01T10:00:00.000Z\",\n  \"endAt\": \"2026-01-01T12:00:00.000Z\",\n  \"reminderOffsetsMinutes\": [\n    60,\n    15\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "PATCH update task",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}orgs/{{orgId}}/branches/{{branchId}}/tasks/{{taskId}}",
+            "description": "tasks.crud.spec.js, tasks.update.spec.js, tasks.update.negative, tasks.move*, tasks.subtasks*",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Updated from Postman\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "DELETE task",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}orgs/{{orgId}}/branches/{{branchId}}/tasks/{{taskId}}",
+            "description": "tasks.crud.spec.js, tasks.delete*, tasks.update*, tasks.settings.negative, tasks.subtasks*, tasks.move.negative"
+          }
+        },
+        {
+          "name": "GET subtasks tree",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}orgs/{{orgId}}/branches/{{branchId}}/tasks/{{taskId}}/subtasks/tree",
+            "description": "tasks.subtasks-tree.spec.js"
+          }
+        },
+        {
+          "name": "GET subtasks",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}orgs/{{orgId}}/branches/{{branchId}}/tasks/{{parentTaskId}}/subtasks",
+            "description": "tasks.subtasks.spec.js, tasks.subtasks.negative.spec.js, tasks.delete.spec.js, tasks.move.negative, tasks.update.negative"
+          }
+        },
+        {
+          "name": "POST subtask",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}orgs/{{orgId}}/branches/{{branchId}}/tasks/{{parentTaskId}}/subtasks",
+            "description": "tasks.subtasks.spec.js, tasks.delete.spec.js, tasks.move.negative, tasks.update.negative",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Subtask\",\n  \"description\": \"child\",\n  \"statusId\": \"{{statusId}}\",\n  \"priorityId\": \"{{priorityId}}\",\n  \"assigneeId\": \"{{userId}}\",\n  \"startAt\": \"2026-01-01T10:00:00.000Z\",\n  \"endAt\": \"2026-01-01T11:00:00.000Z\",\n  \"reminderOffsetsMinutes\": [\n    30\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "PATCH reparent",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}orgs/{{orgId}}/branches/{{branchId}}/tasks/{{subtaskId}}/reparent",
+            "description": "tasks.subtasks.spec.js, tasks.subtasks.negative.spec.js",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"underTaskId\": \"{{parentTaskId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "PATCH move-under-parent",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}orgs/{{orgId}}/branches/{{branchId}}/tasks/{{subtaskId}}/move-under-parent",
+            "description": "tasks.subtasks.spec.js, tasks.subtasks.negative.spec.js",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "GET comments",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}orgs/{{orgId}}/branches/{{branchId}}/tasks/{{taskId}}/comments?page=1&limit=20",
+            "description": "tasks.comments.spec.js, tasks.comments.negative.spec.js"
+          }
+        },
+        {
+          "name": "POST comment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}orgs/{{orgId}}/branches/{{branchId}}/tasks/{{taskId}}/comments",
+            "description": "tasks.comments.spec.js, tasks.comments.negative.spec.js",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"text\": \"Postman comment\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "POST comment reply",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}orgs/{{orgId}}/branches/{{branchId}}/tasks/{{taskId}}/comments/{{commentId}}/replies",
+            "description": "tasks.comments.spec.js, tasks.comments.negative.spec.js",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"text\": \"Reply\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "PATCH comment",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}orgs/{{orgId}}/branches/{{branchId}}/tasks/{{taskId}}/comments/{{commentId}}",
+            "description": "tasks.comments.spec.js, tasks.comments.negative.spec.js",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"text\": \"Edited\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "DELETE comment",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}orgs/{{orgId}}/branches/{{branchId}}/tasks/{{taskId}}/comments/{{commentId}}",
+            "description": "tasks.comments.spec.js"
+          }
+        },
+        {
+          "name": "PATCH move task",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}orgs/{{orgId}}/branches/{{branchId}}/tasks/{{taskId}}/move",
+            "description": "tasks.move.spec.js, tasks.move.negative.spec.js",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"targetBranchId\": \"{{branchId}}\",\n  \"targetParentTaskId\": null,\n  \"sortOrder\": 0\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "GET analytics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}orgs/{{orgId}}/branches/{{branchId}}/tasks/analytics",
+            "description": "tasks.analytics.spec.js"
+          }
+        },
+        {
+          "name": "GET saved filters",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}orgs/{{orgId}}/branches/{{branchId}}/tasks/analytics/saved-filters",
+            "description": "tasks.saved-filters.spec.js, tasks.saved-filters.negative.spec.js"
+          }
+        },
+        {
+          "name": "POST saved filter",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}orgs/{{orgId}}/branches/{{branchId}}/tasks/analytics/saved-filters",
+            "description": "tasks.saved-filters.spec.js",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"filter\",\n  \"filter\": {}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "DELETE saved filter",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}orgs/{{orgId}}/branches/{{branchId}}/tasks/analytics/saved-filters/{{filterId}}",
+            "description": "tasks.saved-filters.spec.js"
+          }
+        },
+        {
+          "name": "GET task-notifications (branch)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}orgs/{{orgId}}/branches/{{branchId}}/task-notifications?page=1&pageSize=20",
+            "description": "tasks.notifications.spec.js, tasks.notifications.negative.spec.js"
+          }
+        },
+        {
+          "name": "GET task-notifications (org)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}orgs/{{orgId}}/task-notifications?page=1&pageSize=20",
+            "description": "tasks.notifications.spec.js fallback org-scoped"
+          }
+        },
+        {
+          "name": "POST notification read",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}orgs/{{orgId}}/branches/{{branchId}}/task-notifications/{{notificationId}}/read",
+            "description": "tasks.notifications.spec.js — use org path variant manually if needed"
+          }
+        },
+        {
+          "name": "POST notifications read-all (branch)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}orgs/{{orgId}}/branches/{{branchId}}/task-notifications/read-all",
+            "description": "tasks.notifications.spec.js"
+          }
+        },
+        {
+          "name": "POST notifications read-all (org)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}orgs/{{orgId}}/task-notifications/read-all",
+            "description": "tasks.notifications.spec.js when basePath is org-scoped"
+          }
+        },
+        {
+          "name": "GET task-settings statuses",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}orgs/{{orgId}}/task-settings/statuses",
+            "description": "tasks.settings.spec.js, tasks.settings.negative.spec.js"
+          }
+        },
+        {
+          "name": "POST task-settings statuses",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}orgs/{{orgId}}/task-settings/statuses",
+            "description": "tasks.settings.spec.js, tasks.settings.negative.spec.js",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Status PM\",\n  \"color\": \"#112233\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "PATCH task-settings status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}orgs/{{orgId}}/task-settings/statuses/{{statusId}}",
+            "description": "tasks.settings.spec.js",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Renamed status\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "PUT reorder statuses",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}orgs/{{orgId}}/task-settings/statuses/reorder",
+            "description": "tasks.settings.spec.js, tasks.settings.negative.spec.js",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderedIds\": [\n    \"{{statusId}}\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "DELETE task-settings status",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}orgs/{{orgId}}/task-settings/statuses/{{statusId}}",
+            "description": "tasks.settings.spec.js, tasks.settings.negative.spec.js"
+          }
+        },
+        {
+          "name": "GET task-settings priorities",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}orgs/{{orgId}}/task-settings/priorities",
+            "description": "tasks.settings.spec.js, tasks.settings.negative.spec.js"
+          }
+        },
+        {
+          "name": "POST task-settings priorities",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}orgs/{{orgId}}/task-settings/priorities",
+            "description": "tasks.settings.spec.js, tasks.settings.negative.spec.js",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Priority PM\",\n  \"color\": \"#445566\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "PATCH task-settings priority",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}orgs/{{orgId}}/task-settings/priorities/{{priorityId}}",
+            "description": "tasks.settings.spec.js",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Renamed priority\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "PUT reorder priorities",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}orgs/{{orgId}}/task-settings/priorities/reorder",
+            "description": "tasks.settings.spec.js, tasks.settings.negative.spec.js",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderedIds\": [\n    \"{{priorityId}}\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "DELETE task-settings priority",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}orgs/{{orgId}}/task-settings/priorities/{{priorityId}}",
+            "description": "tasks.settings.spec.js, tasks.settings.negative.spec.js"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users (catalog)",
+      "description": "Routes from `tests/api/modules/users` and user-related `tests/api/regression`.",
+      "item": [
+        {
+          "name": "GET org users list",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}orgs/{{orgId}}/users?page=1&pageSize=20",
+            "description": "users.list.spec.js, users.list.negative.spec.js, users.list.visibility.spec.js, regression access specs"
+          }
+        },
+        {
+          "name": "POST create org user",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}orgs/{{orgId}}/users",
+            "description": "users.create.spec.js, users.create.negative.spec.js, users.profile.validation.spec.js — trim body per helpers/createUserPayload.js for full smoke",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"branchId\": \"{{branchId}}\",\n  \"email\": \"api.postman.user@demo.com\",\n  \"fullName\": \"Postman User\",\n  \"phoneNumber\": \"07123456789\",\n  \"dateOfBirth\": \"1995-06-12\",\n  \"gender\": \"MALE\",\n  \"addressLine1\": \"1 Test St\",\n  \"town\": \"London\",\n  \"city\": \"London\",\n  \"country\": \"UK\",\n  \"position\": \"Operator\",\n  \"employeeId\": \"EMP-PM\",\n  \"status\": \"ACTIVE\",\n  \"branchRole\": \"EMPLOYEE\",\n  \"departmentIds\": [],\n  \"headDepartmentIds\": []\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "GET user by id",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}orgs/{{orgId}}/users/{{userId}}",
+            "description": "users.get.spec.js, users.get.negative.spec.js, users.update.flow.spec.js, regression users.get.access"
+          }
+        },
+        {
+          "name": "PATCH user",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}orgs/{{orgId}}/users/{{userId}}",
+            "description": "users.update.flow.spec.js, users.profile.validation.spec.js, users.inactive-access.spec.js, users.create.rules.spec.js",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Patched name\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "GET users options",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}orgs/{{orgId}}/users/options?branchId={{branchId}}",
+            "description": "users.options.spec.js, users.options.negative.spec.js, regression users.options.access.spec.js"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Regression (spot)",
+      "description": "Extra calls from `tests/api/regression` not duplicated above.",
+      "item": [
+        {
+          "name": "[MISC-PROT-001] GET protected path invalid JWT",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIwMDAwMDAwMC0wMDAwLTAwMDAtMDAwMC0wMDAwMDAwMDAwMDAiLCJleHAiOjk5fQ.invalid"
+              }
+            ],
+            "url": "{{baseUrl}}{{protectedApiPath}}",
+            "description": "qa-auth-matrix.spec.js — set `protectedApiPath` relative to base (no leading slash), default matches Playwright fallback."
+          }
+        },
+        {
+          "name": "GET protected path (template)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}{{protectedApiPath}}",
+            "description": "Use env PROTECTED_API_PATH style path for matrix row MISC-PROT-001 valid token scenarios in Playwright."
+          }
+        }
+      ]
+    }
+  ]
+}

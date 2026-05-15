@@ -5,3 +5,4 @@ reports/junit/
 reports/test-results/
 playwright-report/
 test-results/
+postman/*.private.postman_environment.json

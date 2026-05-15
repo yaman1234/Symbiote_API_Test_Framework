@@ -10,6 +10,7 @@ const { loginWithOtp } = require('../../../../../helpers/authSession');
 const { getSeededAccountByKey } = require('../../../../../helpers/testData');
 const { publishApiResponse } = require('../../../../../helpers/apiResponseReport');
 const { otpChainTestsSkippedReason } = require('../../../../../helpers/otpChainSkip');
+const { resolveTasksBranchId, resolveTaskCreateIds } = require('../../../../../helpers/tasksContext');
 
 test.describe('Update task @tasks', () => {
   const owner = getSeededAccountByKey('t1_owner');
@@ -56,7 +57,6 @@ test.describe('Update task @tasks', () => {
   test.beforeAll(async () => {
     test.skip(!ownerEmail, 'Set TASKS_OWNER_EMAIL or USER_MGMT_OWNER_EMAIL');
     test.skip(!ownerPassword, 'Set TASKS_OWNER_PASSWORD or LOGIN_PASSWORD');
-    test.skip(!env.TASKS_BRANCH_ID, 'Set TASKS_BRANCH_ID for tasks routes');
     const skipOtp = otpChainTestsSkippedReason();
     test.skip(!!skipOtp, skipOtp);
 
@@ -64,7 +64,7 @@ test.describe('Update task @tasks', () => {
     ownerSession = await loginWithOtp(client, { email: ownerEmail, password: ownerPassword, otp: env.VERIFY_OTP });
     test.skip(!ownerSession.ok, ownerSession.ok ? '' : `Owner OTP login failed at ${ownerSession.step}`);
 
-    branchId = env.TASKS_BRANCH_ID || ownerSession.branchId || '';
+    branchId = resolveTasksBranchId(env.TASKS_BRANCH_ID, ownerSession.branchId);
     test.skip(!branchId, 'No branch id available for patch negative tests');
 
     const listPath = `orgs/${ownerSession.orgId}/branches/${branchId}/tasks`;
@@ -75,10 +75,17 @@ test.describe('Update task @tasks', () => {
     const listBody = await listRes.json();
     test.skip(!listRes.ok(), `List tasks failed: HTTP ${listRes.status()}`);
     const first = Array.isArray(listBody?.data?.items) ? listBody.data.items[0] : null;
-    test.skip(!first, 'No existing task row to derive ids');
-    statusId = first?.status?.id;
-    priorityId = first?.priority?.id;
-    assigneeId = first?.assignee?.id || ownerSession.orgUserId;
+    if (first && first?.status?.id && first?.priority?.id) {
+      statusId = first.status.id;
+      priorityId = first.priority.id;
+      assigneeId = first?.assignee?.id || ownerSession.orgUserId;
+    } else {
+      const ids = await resolveTaskCreateIds(client, ownerSession, branchId);
+      test.skip(!ids.ok, ids.reason || 'Could not resolve task create ids');
+      statusId = ids.statusId;
+      priorityId = ids.priorityId;
+      assigneeId = ids.assigneeId;
+    }
     test.skip(!statusId || !priorityId || !assigneeId, 'Missing statusId/priorityId/assigneeId');
   });
 

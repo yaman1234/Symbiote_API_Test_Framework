@@ -2,19 +2,14 @@ const {
   MASTER_XLSX_PATH,
   TESTCASES_DIR,
   REPORT_DIR,
-  MASTER_COLUMNS,
-  RUN_RAW_COLUMNS,
   ensureDir,
-  readWorkbookIfExists,
-  readSheetAsRows,
-  writeSheetFromRows,
   stripMdInline,
   normalizePathForCompare,
-  buildDashboardSheet,
-  XLSX,
   fs,
   path
 } = require('./shared');
+const { readMasterRowsFromFile, readRunRawRowsFromFile, writeMasterWorkbook } = require('./master-workbook');
+const { TESTCASE_MD_ORDER } = require('./testcase-order');
 
 function cleanDescribeTitle(value) {
   return String(value || '')
@@ -181,64 +176,74 @@ function parseTestCaseFile(filePath, endpointNameCache) {
   return { rows, warnings };
 }
 
-function main() {
+async function main() {
   ensureDir(REPORT_DIR);
   const endpointNameCache = buildEndpointNameCache();
-  const testCaseFiles = fs
+
+  const onDisk = fs
     .readdirSync(TESTCASES_DIR)
-    .filter((f) => f.endsWith('.md') && f.toLowerCase() !== 'readme.md')
-    .map((f) => path.join(TESTCASES_DIR, f));
+    .filter((f) => f.endsWith('.md') && f.toLowerCase() !== 'readme.md');
+  const orderedNames = [...TESTCASE_MD_ORDER];
+  for (const name of onDisk) {
+    if (!orderedNames.includes(name)) orderedNames.push(name);
+  }
 
   const rows = [];
   const warnings = [];
-  for (const filePath of testCaseFiles) {
+  for (const base of orderedNames) {
+    const filePath = path.join(TESTCASES_DIR, base);
+    if (!fs.existsSync(filePath)) continue;
     const parsed = parseTestCaseFile(filePath, endpointNameCache);
     rows.push(...parsed.rows);
     warnings.push(...parsed.warnings);
   }
 
   const dedupedByTc = new Map();
+  const tcOrder = [];
   for (const row of rows) {
     if (!row.TC_ID) continue;
-    if (!dedupedByTc.has(row.TC_ID)) {
-      dedupedByTc.set(row.TC_ID, row);
+    const id = String(row.TC_ID);
+    if (!dedupedByTc.has(id)) {
+      dedupedByTc.set(id, row);
+      tcOrder.push(id);
     } else {
       warnings.push({
         file: 'multiple',
-        tcHint: row.TC_ID,
-        missingFields: ['Duplicate TC_ID found; keeping first occurrence']
+        tcHint: id,
+        missingFields: ['Duplicate TC_ID found; keeping first occurrence (document order)']
       });
     }
   }
 
-  const workbook = readWorkbookIfExists(MASTER_XLSX_PATH);
-  const existingMasterRows = readSheetAsRows(workbook, 'TestCases_Master');
+  let existingMasterRows = [];
+  let existingRunRawRows = [];
+  if (fs.existsSync(MASTER_XLSX_PATH)) {
+    existingMasterRows = await readMasterRowsFromFile(MASTER_XLSX_PATH);
+    existingRunRawRows = await readRunRawRowsFromFile(MASTER_XLSX_PATH);
+  }
   const existingByTc = new Map(existingMasterRows.map((r) => [String(r.TC_ID), r]));
 
-  const mergedRows = Array.from(dedupedByTc.values())
-    .map((row) => {
-      const existing = existingByTc.get(String(row.TC_ID));
-      if (!existing) return row;
-      return {
-        ...row,
-        Endpoint_Name: row.Endpoint_Name || existing.Endpoint_Name || '',
-        'Last Status': existing['Last Status'] || existing.Last_Status || '',
-        'Last Run Time': existing['Last Run Time'] || existing.Last_Run_Time || '',
-        'Last API Response Time':
-          existing['Last API Response Time'] || existing.Last_Duration_ms || '',
-        'Last Error': existing['Last Error'] || existing.Last_Error || ''
-      };
-    })
-    .sort((a, b) => String(a.TC_ID).localeCompare(String(b.TC_ID)));
-
-  const existingRunRawRows = readSheetAsRows(workbook, 'Run_Results_Raw');
-
-  writeSheetFromRows(workbook, 'TestCases_Master', mergedRows, MASTER_COLUMNS);
-  writeSheetFromRows(workbook, 'Run_Results_Raw', existingRunRawRows, RUN_RAW_COLUMNS);
-  buildDashboardSheet(workbook, mergedRows, existingRunRawRows);
+  const mergedRows = tcOrder.map((id) => {
+    const row = dedupedByTc.get(id);
+    const existing = existingByTc.get(id);
+    if (!existing) return row;
+    return {
+      ...row,
+      Endpoint_Name: row.Endpoint_Name || existing.Endpoint_Name || '',
+      'Last Status': existing['Last Status'] || existing.Last_Status || '',
+      'Last Run Time': existing['Last Run Time'] || existing.Last_Run_Time || '',
+      'Last API Response Time':
+        existing['Last API Response Time'] || existing.Last_Duration_ms || '',
+      'Last Error': existing['Last Error'] || existing.Last_Error || ''
+    };
+  });
 
   const outputPath = process.env.MASTER_XLSX_OUTPUT || MASTER_XLSX_PATH;
-  XLSX.writeFile(workbook, outputPath);
+  await writeMasterWorkbook(outputPath, {
+    masterRows: mergedRows,
+    runRows: existingRunRawRows,
+    unmappedRows: []
+  });
 
   const warningPath = path.join(REPORT_DIR, 'parse-warnings.json');
   fs.writeFileSync(
@@ -260,4 +265,7 @@ function main() {
   console.log(`Parse warnings: ${warnings.length} (${warningPath})`);
 }
 
-main();
+main().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});
